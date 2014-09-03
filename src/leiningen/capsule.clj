@@ -19,9 +19,13 @@
 		(not= a :fat)
 		(not= a :slim)))
 
+(defn- build-capsule [project & args]
+	(main/info "Unimplemented (yet)"))	; TODO Implement
+
 (defn capsule
 	"Creates a capsule for the project."
 	([project & args]
 	 (apply compile/compile (cons project (filter strip-capsule-args args)))
-	 (main/info "Unimplemented (yet)"))
-	([project] (capsule project :fat)))
+	 ; Middleware will have already filled leiningen's manifest map appropriately
+	 (apply build-capsule (cons project args)))	; TODO Implement
+	([project] (capsule project :fat))) ; Default is fat capsule
