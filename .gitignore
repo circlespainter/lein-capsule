@@ -1,12 +1,10 @@
-/target
-/classes
-/checkouts
-pom.xml
-pom.xml.asc
-*.jar
-*.class
-/.lein-*
-/.nrepl-port
+/**/target
+/**/checkouts
+/**/pom.xml
+/**/pom.xml.asc
+/**/*.class
+/**/.lein-*
+/**/.nrepl-port
 
-.idea
-lein_capsule.iml
+/**/.idea
+/**/*.iml
