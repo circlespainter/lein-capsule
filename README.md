@@ -1,4 +1,4 @@
-# lein-capsule
+# lein-capsule (UNIMPLEMENTED, IN PROGRESS)
 
 A Leiningen plugin for Parallel Universe's Capsule
 
