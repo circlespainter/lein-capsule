@@ -1,20 +1,21 @@
 (ns leiningen.capsule
-		"Creates a capsule for the project."
-		(:require [leiningen.core.main :as main]
-							[leiningen.core.project :as project]
-							[leiningen.compile :as compile]
-							[leiningen.clean :as clean]))
+	"Creates a capsule for the project."
+	(:require [leiningen.core.main :as main]
+						[leiningen.core.project :as project]
+						[leiningen.compile :as compile]
+						[leiningen.clean :as clean]))
 
 ; Unused for now
 ; (def ^:private type-names [:thin :fat])
 
-(def ^:private types-path [:capsule :types])
 (def ^:private capsule-default-name-path [:capsule :name])
-(def ^:private execution-boot-path [:capsule :execution :boot])
+(def ^:private types-path [:capsule :types])
+(def ^:private execution-runtime-path [:capsule :execution :runtime])
 
 ; (defn- mf-put-toplevel [project capsule-type])
 
-(defn- fill-capsule-manifest [project capsule-type]
+(defn- capsulize [project capsule-type]
+	"Augments the manifest inserting capsule-related entries"
 	(->
 		project
 		; TODO Implement
@@ -24,12 +25,6 @@
 		; (mf-put-execution capsule-type)
 		; (mf-put-deps capsule-type) ; TODO Remember to always add clojars as additional default
 	))
-
-(defn- capsulize [project capsule-type]
-	""
-	(->
-		project
-		(fill-capsule-manifest capsule-type)))
 
 (defn- build-capsule [project capsule-type]
 	"Builds the capsule of given type using the pre-processed project map"
@@ -46,15 +41,16 @@
 	"Extracts and returns the enabled capsule types sub-map, if any"
 	(get-in project types-path))
 
-(defn- normalize-execution-runtime-agents [project]
+; TODO Improve error reporting
+(defn- validate-execution-runtime-agents [project]
 	"Validates specification of execution boot settings"
-	(let [boot (get-in project execution-boot-path)]
-		project)) ; TODO Implement
-
-(defn- normalize-execution-boot [project]
-	"Validates specification of execution boot settings"
-	(let [boot (get-in project execution-boot-path)]
-		project)) ; TODO Implement
+	(let [agents (:agents (get-in project execution-runtime-path))]
+		(doseq [a agents]
+			(if (not (or (get-in a [:embedded :jar]) (get-in a [:artifact :id])))
+				(do
+					(main/warn "FATAL: some agents miss coordinates")
+					(comment main/exit))))
+		project))
 
 (defn- default-capsule-name [project]
 	"Extracts or build the default capsule name"
@@ -62,7 +58,7 @@
 
 ; TODO Improve error reporting
 (defn- normalize-types [project]
-	"Validates specification of capsules to be built"
+	"Validates (and makes more handy for subsequent build steps) the specification of capsules to be built"
 	(let [types (get-in project types-path)
 				capsule-names (flatten (map #(:name %1) (vals types)))
 				capsule-names-count (count capsule-names)]
@@ -90,8 +86,7 @@
 	(->
 		project
 		normalize-types
-		normalize-execution-boot
-		normalize-execution-runtime-agents))
+		validate-execution-runtime-agents))
 
 (defn capsule
 	"Creates a capsule for the project"

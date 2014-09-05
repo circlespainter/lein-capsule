@@ -99,18 +99,18 @@
 				;; Optional
 				:agents [
 					;; Optional
-					:embedded {
+					{ :embedded {
 						;; Mandatory
 						:jar ""
 						;; Optional
 						:params []
-					}
-					:artifact {
+					}}
+					{ :artifact {
 						;; Mandatory
 						:id ""
 						;; Optional
 						:params []
-					}
+					}}
 				]
 
 				:paths {
