@@ -3,8 +3,11 @@
   :url "http://example.com/FIXME"
   :license {:name "Eclipse Public License"
             :url "http://www.eclipse.org/legal/epl-v10.html"}
-	:plugins [[lein-capsule "0.1.0-SNAPSHOT"]]
+	:plugins [[lein-capsule "0.1.0-SNAPSHOT"] [lein-pprint "1.1.1"]]
   :dependencies [[org.clojure/clojure "1.6.0"]]
+
+	;;; For test
+	:profiles {:bla {:jvm-opts "-server"}}
 
 	;;; Capsule plugin configuration section, optional
 	:capsule {
@@ -24,6 +27,7 @@
 			}
 			;; Optional, can override anything, will trigger building a fat capsule
 			:fat {
+				:name "capsule-fat.jar"
 			}
 		}
 

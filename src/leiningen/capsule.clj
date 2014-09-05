@@ -1,54 +1,107 @@
 (ns leiningen.capsule
 		"Creates a capsule for the project."
-		(:require [clojure.xml :as xml]
-							[clojure.zip :as zip]
-							[clojure.java.io :as io]
-							[leiningen.core.classpath :as classpath]
+		(:require [leiningen.core.main :as main]
 							[leiningen.core.project :as project]
-							[leiningen.core.main :as main]
-							[leiningen.core.utils :as utils]
 							[leiningen.compile :as compile]
-							[leiningen.jar :as jar])
-		(:import (java.io File FileOutputStream PrintWriter)
-						 (java.util.regex Pattern)
-						 (java.util.zip ZipFile ZipOutputStream ZipEntry)
-						 (org.apache.commons.io.output CloseShieldOutputStream)))
+							[leiningen.clean :as clean]))
 
-(defn- fill-capsule-manifest [project]
+; Unused for now
+; (def ^:private type-names [:thin :fat])
+
+(def ^:private types-path [:capsule :types])
+(def ^:private capsule-default-name-path [:capsule :name])
+(def ^:private execution-boot-path [:capsule :execution :boot])
+
+; (defn- mf-put-toplevel [project capsule-type])
+
+(defn- fill-capsule-manifest [project capsule-type]
 	(->
 		project
-		(comment	; TODO Implement all
-			mf-put-execution
-			mf-put-application-id
-			mf-put-runtime
-			mf-put-cache-settings
-			mf-put-maven
-			mf-put-classpaths
-			mf-put-jvm
-			mf-put-security
-			mf-put-log)))
+		; TODO Implement
+		; (mf-put-toplevel capsule-type)
+		; (mf-put-application capsule-type)
+		; (mf-put-modes capsule-type)
+		; (mf-put-execution capsule-type)
+		; (mf-put-deps capsule-type) ; TODO Remember to always add clojars as additional default
+	))
 
-(defn- fill-capsule-dependency [project]
-	(update-in project [:dependencies]
-		(fn [deps]
-			project))) ; TODO Implement
-
-(defn- capsulize [project]
+(defn- capsulize [project capsule-type]
+	""
 	(->
 		project
-		fill-capsule-dependency
-		fill-capsule-manifest))
+		(fill-capsule-manifest capsule-type)))
 
-(defn- build-capsule [project]
-	(let [
-		project (project/merge-profiles project [:capsule])
-		project (capsulize project)
-	 ]
+(defn- build-capsule [project capsule-type]
+	"Builds the capsule of given type using the pre-processed project map"
+	(let [project (capsulize project capsule-type)]
 		(main/info "Unimplemented (yet)"))) ; TODO Implement
 
+(defn- merge-overrides [project capsule-type-profile-map]
+	"Merges as a profile the given capsule type sub-map"
+	(->
+		(update-in project [:profiles] merge capsule-type-profile-map)
+		(project/merge-profiles project [(first (keys capsule-type-profile-map))])))
+
+(defn- get-enabled-capsules [project]
+	"Extracts and returns the enabled capsule types sub-map, if any"
+	(get-in project types-path))
+
+(defn- normalize-execution-runtime-agents [project]
+	"Validates specification of execution boot settings"
+	(let [boot (get-in project execution-boot-path)]
+		project)) ; TODO Implement
+
+(defn- normalize-execution-boot [project]
+	"Validates specification of execution boot settings"
+	(let [boot (get-in project execution-boot-path)]
+		project)) ; TODO Implement
+
+(defn- default-capsule-name [project]
+	"Extracts or build the default capsule name"
+	(or (get-in project capsule-default-name-path) (str (:name project) "-capsule")))
+
+; TODO Improve error reporting
+(defn- normalize-types [project]
+	"Validates specification of capsules to be built"
+	(let [types (get-in project types-path)
+				capsule-names (flatten (map #(:name %1) (vals types)))
+				capsule-names-count (count capsule-names)]
+		(cond
+			(> (count (keys types)) (+ 1 capsule-names-count))
+				(do
+					(main/warn "FATAL: all capsule types must define capsule names (except one at most), exiting")
+					(main/exit))
+			(not= capsule-names-count (count (distinct capsule-names)))
+				(do
+					(main/warn "FATAL: conflicting capsule names found: " capsule-names)
+					(main/exit))
+			:else
+				(update-in project types-path
+					(reduce-kv (fn [types type-key type-map]
+						(merge types
+							{ type-key
+								(or
+									(:name type-map)
+									(default-capsule-name project)) }))
+						types types)))))
+
+(defn- normalize-capsule-spec [project]
+	"Performs full validation of the project capsule specification"
+	(->
+		project
+		normalize-types
+		normalize-execution-boot
+		normalize-execution-runtime-agents))
+
 (defn capsule
-	"Creates a capsule for the project."
+	"Creates a capsule for the project"
 	[project & args]
-	 (apply compile/compile (cons project args))
-	 ; Middleware will have already filled leiningen's manifest map appropriately
-	 (apply build-capsule [project]))
+	(let [project (normalize-capsule-spec project)]
+		(doseq [capsule-type-profile-map (get-enabled-capsules project)]
+			(let [project (merge-overrides project capsule-type-profile-map)
+						capsule-type-name (first (keys capsule-type-profile-map))]
+				(main/info "CAPSULE: processing spec '" +  + "'")
+				(clean/clean project) ; TODO Improve: avoid cleaning if/when possible
+				(apply compile/compile (cons project args))
+				; Middleware will have already filled leiningen's manifest map appropriately
+				(build-capsule project capsule-type-name)))))
