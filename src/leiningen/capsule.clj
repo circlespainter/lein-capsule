@@ -8,36 +8,59 @@
 ; Unused for now
 ; (def ^:private type-names [:thin :fat])
 
+(def ^:private application-name-path [:capsule :application :name])
+(def ^:private application-version-path [:capsule :application :version])
 (def ^:private capsule-default-name-path [:capsule :name])
-(def ^:private types-path [:capsule :types])
 (def ^:private execution-runtime-path [:capsule :execution :runtime])
+(def ^:private log-level-path [:capsule :log-level])
+(def ^:private profiles-path [:capsule :profiles])
+(def ^:private types-path [:capsule :types])
 
-; (defn- mf-put-toplevel [project capsule-type])
+(defn- same [x] x)
+
+(defn- add-to-manifest-if-path [project path key f]
+	(let [value (get-in project path)]
+		(if value (update-in project [:manifest] #(merge %1 {key (f value)})) project)))
+
+(defn- manifest-put-application [project]
+	(->
+		project
+		(add-to-manifest-if-path application-name-path "Application-Name" same)
+		(add-to-manifest-if-path application-version-path "Application-Version" same)))
+
+(defn- manifest-put-toplevel [project]
+	(->
+		project
+		; TODO Implement plugin version check
+		(add-to-manifest-if-path log-level-path "Log-Level" same)))
 
 (defn- capsulize [project capsule-type]
 	"Augments the manifest inserting capsule-related entries"
-	(->
-		project
-		; TODO Implement
-		; (mf-put-toplevel capsule-type)
-		; (mf-put-application capsule-type)
-		; (mf-put-modes capsule-type)
-		; (mf-put-execution capsule-type)
-		; (mf-put-deps capsule-type) ; TODO Remember to always add clojars as additional default
-	))
+	(let [user-manifest (or (:manifest project) {})   ; backup existing user manifest
+				project (update-in [:manifest] project [:manifest] {})] ; reset manifest
+		(->
+			project
+			(manifest-put-toplevel)
+			(manifest-put-application)
+			; TODO Implement
+			; (manifest-put-modes capsule-type)
+			; (manifest-put-execution capsule-type)
+			; (manifest-put-deps capsule-type) ; TODO Remember to always add clojars as additional default
+			(update-in [:manifest] #(merge %1 user-manifest)) ; priority to user manifest
+		)))
 
 (defn- build-capsule [project capsule-type]
 	"Builds the capsule of given type using the pre-processed project map"
 	(let [project (capsulize project capsule-type)]
 		(main/info "Unimplemented (yet)"))) ; TODO Implement
 
-(defn- merge-overrides [project capsule-type-profile-map]
+(defn- merge-overrides [project capsule-type-map]
 	"Merges as a profile the given capsule type sub-map"
 	(->
-		(update-in project [:profiles] merge capsule-type-profile-map)
-		(project/merge-profiles project [(first (keys capsule-type-profile-map))])))
+		(update-in project [:profiles] merge {:current-capsule-profile capsule-type-map})
+		(project/merge-profiles [:current-capsule-profile])))
 
-(defn- get-enabled-capsules [project]
+(defn- get-capsule-types [project]
 	"Extracts and returns the enabled capsule types sub-map, if any"
 	(get-in project types-path))
 
@@ -55,6 +78,26 @@
 (defn- default-capsule-name [project]
 	"Extracts or build the default capsule name"
 	(or (get-in project capsule-default-name-path) (str (:name project) "-capsule")))
+
+; TODO Improve error reporting
+(defn- normalize-profiles [project]
+	(let [modes (get-in project profiles-path)
+				default-profiles-count (count (map #(:default %1) (vals modes)))]
+		(cond
+			(> 1 default-profiles-count)
+				(do
+					(main/warn "FATAL: at most one mode can be marked as default")
+					(main/exit))
+			(= 1 default-profiles-count) ; Merge mode as profile in :capsule if it's default
+				(let
+					[default-profile-pair
+						(flatten (map
+							#(if (:default (second %1)) %1)
+							(seq modes)))
+					 new-capsule (project/merge-profiles (:capsule project) [(first default-profile-pair)])]
+					(update-in project [:capsule] new-capsule))
+			:else
+				project)))
 
 ; TODO Improve error reporting
 (defn- normalize-types [project]
@@ -86,15 +129,16 @@
 	(->
 		project
 		normalize-types
+		normalize-profiles
 		validate-execution-runtime-agents))
 
 (defn capsule
 	"Creates a capsule for the project"
 	[project & args]
 	(let [project (normalize-capsule-spec project)]
-		(doseq [capsule-type-profile-map (get-enabled-capsules project)]
-			(let [project (merge-overrides project capsule-type-profile-map)
-						capsule-type-name (first (keys capsule-type-profile-map))]
+		(doseq [capsule-type-map (get-capsule-types project)]
+			(let [project (merge-overrides project capsule-type-map)
+						capsule-type-name (first (keys capsule-type-map))]
 				(main/info "CAPSULE: processing spec '" +  + "'")
 				(clean/clean project) ; TODO Improve: avoid cleaning if/when possible
 				(apply compile/compile (cons project args))

@@ -12,12 +12,12 @@
 	;;; Capsule plugin configuration section, optional
 	:capsule {
 	;;; Optional
-		:min-plugin-version "0.1.0-SNAPSHOT"
+		:min-plugin-version "0.1.0-SNAPSHOT" ; TODO Implement
 
-	;;; Optional
+	;;; Optional, corresponds 1:1 to Log-Level manifest entry
 		:log-level ""
 
-	;;; Optional, defaults to <jarbasename>-<capsuletype>-capsule.jar
+	;;; Optional, defaults to <jarbasename>-<capsuletype>-capsule.jar, corresponds 1:1 to Log-Level manifest entry
 		:name "capsule.jar"
 
 	;;; Optional, only :this is default behaviour; if more than one type is configured, at least one must override :name
@@ -33,14 +33,14 @@
 
 	;;; Optional, check https://github.com/puniverse/capsule#application-id for defaults
 		:application {
-			;; Optional, check https://github.com/puniverse/capsule#application-id for defaults
+			;; Optional, corresponds 1:1 to Application-Name manifest entry, check https://github.com/puniverse/capsule#application-id for defaults
 			:name "lein-capsule-test"
-			;; Optional, check https://github.com/puniverse/capsule#application-id for defaults
+			;; Optional, corresponds 1:1 to Application-Version manifest entry, check https://github.com/puniverse/capsule#application-id for defaults
 			:version "0.1.0-SNAPSHOT"
 		}
 
 	;;; Optional, capsule modes, each of them can override anything except types and application settings
-		:modes {
+		:profiles {
 			:mode1 {
 				;; Optional, will ignore top-level settings and use this mode as default, defaults to false
 				:default false
