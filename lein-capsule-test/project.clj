@@ -15,12 +15,12 @@
 		:min-plugin-version "0.1.0-SNAPSHOT" ; TODO Implement
 
 	;;; Optional, corresponds 1:1 to Log-Level manifest entry
-		:log-level ""
+		:log-level "info"
 
 	;;; Optional, defaults to <jarbasename>-<capsuletype>-capsule.jar, corresponds 1:1 to Log-Level manifest entry
 		:name "capsule.jar"
 
-	;;; Optional, only :this is default behaviour; if more than one type is configured, at least one must override :name
+	;;; Optional, default behaviour is only :thin; if more than one type is configured, at least one must override :name
 		:types {
 			;; Optional, can override anything
 			:thin {
@@ -28,6 +28,12 @@
 			;; Optional, can override anything, will trigger building a fat capsule
 			:fat {
 				:name "capsule-fat.jar"
+
+				:execution {
+					:runtime {
+						:jdk-required true
+					}
+				}
 			}
 		}
 
@@ -41,10 +47,17 @@
 
 	;;; Optional, capsule modes, each of them can override anything except types and application settings
 		:profiles {
-			:mode1 {
+			:my-profile-1 {
 				;; Optional, will ignore top-level settings and use this mode as default, defaults to false
-				:default false
+				:default true
+
+				:execution {
+					:boot {
+						:clojure-ns main2
+					}
+				}
 			}
+			:my-profile-2 {}
 		}
 
 	;;; Optional
@@ -58,7 +71,7 @@
 				:extract-capsule false
 
 				;; Optional, if missing it'll be Leiningen's :main unless one of the following two is specified
-				:clojure-ns "main"
+				:clojure-ns main
 
 				;; Optional, applicable only if application-ns nor Leiningen's main; if neither is present then
 				;; the next one must be

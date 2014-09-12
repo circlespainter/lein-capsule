@@ -3,4 +3,10 @@
 	:url "https://github.com/circlespainter/lein-capsule"
 	:license {:name "Eclipse Public License"
 						:url "http://www.eclipse.org/legal/epl-v10.html"}
-	:eval-in-leiningen true)
+
+	:dependencies [[lein-pprint "1.1.1"]]
+
+	:eval-in-leiningen true
+
+	:jvm-opts ["-agentlib:
+	jdwp=transport=dt_socket,server=y,suspend=n,address=5005"])
