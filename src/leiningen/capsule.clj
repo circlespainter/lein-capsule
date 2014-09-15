@@ -19,7 +19,11 @@
 
 (defn- add-to-manifest-if-path [project path manifest-entry-name f]
 	(let [value (get-in project path)]
-		(if value (update-in project [:manifest] #(merge %1 {manifest-entry-name (f value)})) project)))
+		(if value
+			(update-in project [:manifest]
+				#(merge (or %1 {})
+					{manifest-entry-name (f value)}))
+			project)))
 
 (defn- add-to-manifest-if-profile-path [project path manifest-entry-name f & [profile-keyword]]
 	(add-to-manifest-if-path
@@ -59,8 +63,9 @@
 								project)
 						scripts
 							(get-in project (cc/profile-aware-path cc/path-execution-boot-scriptsx profile-keyword))
-						artifact
-							(get-in project (cc/profile-aware-path cc/path-execution-boot-artifact profile-keyword))]
+						artifact ; Default if unspecified is project artifact
+							(get-in project (cc/profile-aware-path cc/path-execution-boot-artifact profile-keyword)
+									[(symbol (:group project) (:name project)) (:version project)])]
 				(cond
 					scripts
 						(->
@@ -74,11 +79,11 @@
 								"Application"
 								(cutils/artifact-to-string artifact) profile-keyword))
 					:else
-					(->
-						project
-						(add-to-manifest-profile
-							"Application"
-							(cutils/artifact-to-string artifact) profile-keyword))))))) ; This should never happen
+						(->
+							project
+							(add-to-manifest-profile
+								"Application"
+								(cutils/artifact-to-string artifact) profile-keyword))))))) ; This should never happen
 
 (defn- manifest-put-runtime [project & [profile-keyword]]
 	(->
@@ -145,23 +150,25 @@
 	(reduce-kv
 		(fn [project k v]
 			(capsulize project k))
-		project (cc/path-profiles project)))
+		project (get-in project cc/path-profiles)))
 
 (defn- capsulize [project & [profile-keyword]]
 	"Augments the manifest inserting capsule-related entries"
 	(let [user-manifest (or (:manifest project) {})   ; backup existing user manifest
-				project (update-in project [:manifest] (fn[_]{}))] ; reset manifest
-		(->
-			project
-			(manifest-put-profiles)
-			(manifest-put-toplevel profile-keyword)
-			(manifest-put-application profile-keyword)
-			(manifest-put-execution profile-keyword)
-			(merge user-manifest) ; priority to user manifest
-			; TODO Implement
-			; (manifest-put-deps capsule-type) ; TODO Remember to always add clojars as additional default
-			(project/merge-profiles (:manifest project))
-		)))
+				project (update-in project [:manifest] (fn[_]{}))
+				maybe-manifest-put-profiles (if profile-keyword identity manifest-put-profiles)
+				project
+					(->
+						project
+						(maybe-manifest-put-profiles)
+						(manifest-put-toplevel profile-keyword)
+						(manifest-put-application profile-keyword)
+						(manifest-put-execution profile-keyword)
+						; TODO Implement
+						; (manifest-put-deps capsule-type) ; TODO Remember to always add clojars as additional default
+						(update-in [:manifest] #(merge %1 user-manifest)) ; priority to user manifest
+						)] ; reset manifest
+		(project/merge-profiles project [{:manifest (:manifest project)}])))
 
 ; TODO Improve error reporting
 ; TODO Validate Scripts
@@ -250,7 +257,9 @@
 				; (println "\nCapsule type map: " {k v}) ; TODO Comment out/remove once working
 				(let [_ (do (main/info "\nCAPSULE, profile-merging '" v "':\n"))
 							project (cutils/get-project-without-default-profile project)
+							; TODO Check: should previous profile should be unmerged?
 							project (project/merge-profiles project [{:capsule default-profile} {:capsule v}])
+							project (capsulize project)
 							; TODO Comment out/remove once working
 							_ (do (main/info "\nCAPSULE, profile merge for '" capsule-type-name "':\n") (pprint/pprint project))]
 					(clean/clean project) ; TODO Improve: avoid cleaning if/when possible
