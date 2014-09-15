@@ -64,10 +64,10 @@
 		:execution {
 			;; Optional
 			:boot {
-				;; Optional, check https://github.com/puniverse/capsule#application-id for defaults
+				;; Optional, corresponds 1:1 to Main-Class manifest entry, default is "Capsule"
 				:main-class "Capsule"
 
-				;; Optional, check https://github.com/puniverse/capsule#capsules-cache for defaults
+				;; Optional, corresponds 1:1 to Extract-Capsule manifest entry, check https://github.com/puniverse/capsule#capsules-cache for defaults
 				:extract-capsule false
 
 				;; Optional, if missing it'll be Leiningen's :main unless one of the following two is specified
@@ -76,84 +76,88 @@
 				;; Optional, applicable only if application-ns nor Leiningen's main; if neither is present then
 				;; the next one must be
 				:scripts {
-					;; Mandatory
+					;; Mandatory, corresponds 1:1 to Unix-Script manifest entry
 					:unix ""
-					;; Mandatory
+					;; Mandatory, corresponds 1:1 to Windows-Script manifest entry
 					:windows ""
 				}
 
 				;; Optional, applicable only if none of the above is; in that case, if missing, the project's
-				;; complete artifact ID will be used
-				:artifact ""
-			}
+				;; complete artifact ID will be used; corrisponds 1:1 to Application manifest entry
+				:artifact [my/artifact "1.0.0"]
 
-			:args []
+				;; Optional, program arguments, defaults to none
+				:args []
+			}
 
 			;; Optional, check https://github.com/puniverse/capsule#selecting-the-java-runtime for defaults
 			:runtime {
-				;; Optional
+				;; Optional, corrisponds 1:1 to Java-Version manifest entry
 				:java-version ""
-				;; Optional
+				;; Optional, corrisponds 1:1 to Min-Java-Version manifest entry
 				:min-java-version ""
-				;; Optional
+				;; Optional, corrisponds 1:1 to Min-Update-Version manifest entry
 				:min-update-version ""
-				;; Optional
+				;; Optional, corrisponds 1:1 to JDK-Required manifest entry
 				:jdk-required false
 
-				;; Optional
+				;; Optional, corrisponds 1:1 to JVM-Args manifest entry
 				:jvm-args []
 
-				;; Optional
+				;; Optional, corrisponds 1:1 to System-Properties manifest entry
 				:system-properties {}
 
-				;; Optional
+				;; Optional, corrisponds 1:1 to Environment-Variables manifest entry
 				:environment-variables {}
 
-				;; Optional
+				;; Optional, corresponds 1:1 to Java-Agents manifest entry
 				:agents [
 					;; Optional
-					{ :embedded {
+					[:embedded {
 						;; Mandatory
 						:jar ""
 						;; Optional
 						:params []
-					}}
-					{ :artifact {
+					}]
+					[:artifact {
 						;; Mandatory
 						:id ""
 						;; Optional
 						:params []
-					}}
+					}]
 				]
 
 				:paths {
-					;; Optional
-					:embedded-classpath {
-						;; Optional
-						:override []
-					}
+					;; Optional, corresponds 1:1 to App-Class-Path manifest entry
+					:app-clas-spath []
 
 					;; Optional
-					:boot-classpath {
-						;; Optional, will take precedence if the next one is present too
+					:boot-class-path {
+						;; Optional, corresponds 1:1 to Boot-Class-Path-P manifest entry
 						:prepend []
-						;; Optional
+						;; Optional, corresponds 1:1 to Boot-Class-Path manifest entry
 						:override []
-					}
-
-					:native-library-path {
-						;; Optional, will take precedence if the next one is present too
+						;; Optional, corresponds 1:1 to Boot-Class-Path-A manifest entry
 						:append []
-						;; Optional
+					}
+
+					;; Optional
+					:native-library-path {
+						;; Optional, corresponds 1:1 to Library-Class-Path-P manifest entry
 						:prepend []
+						;; Optional, corresponds 1:1 to Library-Class-Path-A manifest entry
+						:append []
 					}
 				}
 
 				:security {
+					;; Optional, corresponds to Security-Manager
+					:manager ""
+					;; Optional
 					:policy {
-						;; Optional, will take precedence if the next one is present too
-						:prepend ""
-						;; Optional
+						;; Optional, corresponds to Security-Policy-A manifest entry
+						:append ""
+						;; Optional, corresponds to Security-Policy manifest entry
 						:override ""
 					}
 				}

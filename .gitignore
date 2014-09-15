@@ -8,3 +8,5 @@
 
 /**/.idea
 /**/*.iml
+
+/lein-capsule-test/log.txt

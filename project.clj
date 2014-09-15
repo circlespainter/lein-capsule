@@ -6,7 +6,4 @@
 
 	:dependencies [[lein-pprint "1.1.1"]]
 
-	:eval-in-leiningen true
-
-	:jvm-opts ["-agentlib:
-	jdwp=transport=dt_socket,server=y,suspend=n,address=5005"])
+	:eval-in-leiningen true)
