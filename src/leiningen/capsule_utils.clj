@@ -30,3 +30,6 @@
 		(str
 			(if nmspc (str nmspc ":") "")
 			nmsym ":" ver)))
+
+(defn capsule-manifest [project]
+	(cc/kwd-capsule-manifest project))

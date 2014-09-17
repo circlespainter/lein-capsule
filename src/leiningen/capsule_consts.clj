@@ -3,6 +3,8 @@
 ; Unused for now
 ; (def type-names [:thin :fat])
 
+(def kwd-capsule-manifest :capsule-manifest)
+
 (def path-main [:main])
 
 (def path-log-level [:log-level])
@@ -41,7 +43,7 @@
     (concat [:capsule :profiles profile-keyword] path)
     (cons :capsule path)))
 
-(defn profile-aware-manifest-entry-name [manifest-entry-name & [profile-keyword]]
-  (if profile-keyword
-    (str manifest-entry-name "-" (name profile-keyword))
-    manifest-entry-name))
+(defn capsule-manifest-path [& [profile-keyword]]
+	(if profile-keyword
+		[kwd-capsule-manifest profile-keyword]
+		[kwd-capsule-manifest]))

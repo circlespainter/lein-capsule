@@ -17,10 +17,10 @@
 	"Builds the capsule of given type using the pre-processed project map"
 	(main/info "\nCAPSULE, capsule build unimplemented (yet)\n")) ; TODO Implement
 
-(defn- add-to-manifest-if-path [project path manifest-entry-name f]
+(defn- add-to-manifest-if-path [project path manifest-entry-name f & [profile-keyword]]
 	(let [value (get-in project path)]
 		(if value
-			(update-in project [:manifest]
+			(update-in project (cc/capsule-manifest-path profile-keyword)
 				#(merge (or %1 {})
 					{manifest-entry-name (f value)}))
 			project)))
@@ -29,37 +29,35 @@
 	(add-to-manifest-if-path
 		project
 		(cc/profile-aware-path path profile-keyword)
-		(cc/profile-aware-manifest-entry-name manifest-entry-name profile-keyword)
-		f))
+		manifest-entry-name
+		f
+		profile-keyword))
 
 (defn- add-to-manifest-if-profile-path-as-string [project path manifest-entry-name & [profile-keyword]]
 	(add-to-manifest-if-profile-path project path manifest-entry-name #(.toString %1) profile-keyword))
 
-(defn- add-to-manifest [project manifest-entry-name manifest-entry-value]
-	(update-in project [:manifest] #(merge %1 {manifest-entry-name manifest-entry-value})) project)
-
-(defn- add-to-manifest-profile [project manifest-entry-name manifest-entry-value & [profile-keyword]]
-	(add-to-manifest project (cc/profile-aware-manifest-entry-name manifest-entry-name profile-keyword) manifest-entry-value))
+(defn- add-to-manifest [project manifest-entry-name manifest-entry-value & [profile-keyword]]
+	(update-in project (cc/capsule-manifest-path profile-keyword) #(merge %1 {manifest-entry-name manifest-entry-value})))
 
 (defn- setup-boot [project & [profile-keyword]]
 	(let [main-ns
 					(get-in project (cc/profile-aware-path cc/path-execution-boot-clojure-ns profile-keyword)
 						(get-in project cc/path-main))
 				args
-					(reduce
+					(.trim (reduce
 						(fn [accum v]
 							(str accum " " v))
 						""
-						(get-in project cc/path-execution-boot-args []))]
+						(get-in project cc/path-execution-boot-args [])))]
 		(if
 			main-ns
-			(->
-				project
-				(add-to-manifest-profile "Application-Class" "clojure.main" profile-keyword)
-				(add-to-manifest-profile "Args" (str main-ns " " args) profile-keyword))
+				(->
+					project
+					(add-to-manifest "Application-Class" "clojure.main" profile-keyword)
+					(add-to-manifest "Args" (.trim (str main-ns " " args)) profile-keyword))
 			(let [project
 							(if (> (.length args) 0)
-								(add-to-manifest-profile project "Args" (str main-ns " " args) profile-keyword)
+								(add-to-manifest project "Args" args profile-keyword)
 								project)
 						scripts
 							(get-in project (cc/profile-aware-path cc/path-execution-boot-scriptsx profile-keyword))
@@ -70,18 +68,18 @@
 					scripts
 						(->
 							project
-							(add-to-manifest-profile "Unix-Script" (:unix scripts) profile-keyword)
-							(add-to-manifest-profile "Windows-Script" (:windows scripts) profile-keyword))
+							(add-to-manifest "Unix-Script" (:unix scripts) profile-keyword)
+							(add-to-manifest "Windows-Script" (:windows scripts) profile-keyword))
 					artifact
 						(->
 							project
-							(add-to-manifest-profile
+							(add-to-manifest
 								"Application"
 								(cutils/artifact-to-string artifact) profile-keyword))
 					:else
 						(->
 							project
-							(add-to-manifest-profile
+							(add-to-manifest
 								"Application"
 								(cutils/artifact-to-string artifact) profile-keyword))))))) ; This should never happen
 
@@ -106,12 +104,18 @@
 								(str (cutils/artifact-to-string (:id v)) "=" (:params v))))
 					"" %1))
 			profile-keyword)
-		(add-to-manifest-if-profile-path cc/path-runtime-app-class-path "App-Class-Path" #(cstr/join " " %1) profile-keyword)
-		(add-to-manifest-if-profile-path cc/path-runtime-boot-class-path-p "Boot-Class-Path-P" #(cstr/join " " %1) profile-keyword)
-		(add-to-manifest-if-profile-path cc/path-runtime-boot-class-path-a "Boot-Class-Path-P" #(cstr/join " " %1) profile-keyword)
-		(add-to-manifest-if-profile-path cc/path-runtime-boot-class-path "Boot-Class-Path" #(cstr/join " " %1) profile-keyword)
-		(add-to-manifest-if-profile-path cc/path-runtime-native-library-path-p "Library-Path-P" #(cstr/join " " %1) profile-keyword)
-		(add-to-manifest-if-profile-path cc/path-runtime-native-library-path-a "Library-Path-A" #(cstr/join " " %1) profile-keyword)
+		(add-to-manifest-if-profile-path
+			cc/path-runtime-app-class-path "App-Class-Path" #(cstr/join " " %1) profile-keyword)
+		(add-to-manifest-if-profile-path
+			cc/path-runtime-boot-class-path-p "Boot-Class-Path-P" #(cstr/join " " %1) profile-keyword)
+		(add-to-manifest-if-profile-path
+			cc/path-runtime-boot-class-path-a "Boot-Class-Path-P" #(cstr/join " " %1) profile-keyword)
+		(add-to-manifest-if-profile-path
+			cc/path-runtime-boot-class-path "Boot-Class-Path" #(cstr/join " " %1) profile-keyword)
+		(add-to-manifest-if-profile-path
+			cc/path-runtime-native-library-path-p "Library-Path-P" #(cstr/join " " %1) profile-keyword)
+		(add-to-manifest-if-profile-path
+			cc/path-runtime-native-library-path-a "Library-Path-A" #(cstr/join " " %1) profile-keyword)
 		(add-to-manifest-if-profile-path-as-string cc/path-runtime-security-manager "Security-Manager" profile-keyword)
 		(add-to-manifest-if-profile-path-as-string cc/path-runtime-security-policy-a "Security-Policy-A" profile-keyword)
 		(add-to-manifest-if-profile-path-as-string cc/path-runtime-security-policy "Security-Policy" profile-keyword)))
@@ -123,7 +127,8 @@
 						project)]
 		(->
 			project
-			(add-to-manifest-if-profile-path-as-string cc/path-execution-boot-extract-capsule "Extract-Capsule" profile-keyword)
+			(add-to-manifest-if-profile-path-as-string
+				cc/path-execution-boot-extract-capsule "Extract-Capsule" profile-keyword)
 			(setup-boot profile-keyword))))
 
 (defn- manifest-put-execution [project & [profile-keyword]]
@@ -135,7 +140,8 @@
 (defn- manifest-put-application [project & [profile-keyword]]
 	(->
 		project
-		(add-to-manifest-if-profile-path-as-string cc/path-application-name profile-keyword "Application-Name" profile-keyword)
+		(add-to-manifest-if-profile-path-as-string
+			cc/path-application-name profile-keyword "Application-Name" profile-keyword)
 		(add-to-manifest-if-profile-path-as-string cc/path-application-version "Application-Version" profile-keyword)))
 
 (defn- manifest-put-toplevel [project & [profile-keyword]]
@@ -152,10 +158,12 @@
 			(capsulize project k))
 		project (get-in project cc/path-profiles)))
 
+(defn- manifest-put-deps [project & [profile-keyword]]
+	)
+
 (defn- capsulize [project & [profile-keyword]]
 	"Augments the manifest inserting capsule-related entries"
 	(let [user-manifest (or (:manifest project) {})   ; backup existing user manifest
-				project (update-in project [:manifest] (fn[_]{}))
 				maybe-manifest-put-profiles (if profile-keyword identity manifest-put-profiles)
 				project
 					(->
@@ -166,9 +174,10 @@
 						(manifest-put-execution profile-keyword)
 						; TODO Implement
 						; (manifest-put-deps capsule-type) ; TODO Remember to always add clojars as additional default
-						(update-in [:manifest] #(merge %1 user-manifest)) ; priority to user manifest
+						(update-in (cc/capsule-manifest-path profile-keyword)
+							#(merge %1 user-manifest)) ; priority to user manifest
 						)] ; reset manifest
-		(project/merge-profiles project [{:manifest (:manifest project)}])))
+		(project/merge-profiles project [{cc/kwd-capsule-manifest (cutils/capsule-manifest project)}])))
 
 ; TODO Improve error reporting
 ; TODO Validate Scripts
@@ -196,24 +205,24 @@
 				capsule-names-count (count capsule-names)]
 		(cond
 			(> (count (keys types)) (+ 1 capsule-names-count)) ; At most one type can avoid specifying capsule name
-			(do
-				(main/warn "FATAL: all capsule types must define capsule names (except one at most), exiting")
-				(main/exit))
+				(do
+					(main/warn "FATAL: all capsule types must define capsule names (except one at most), exiting")
+					(main/exit))
 			(not= capsule-names-count (count (distinct capsule-names))) ; Names must be non-conflicting
-			(do
-				(main/warn "FATAL: conflicting capsule names found: " capsule-names)
-				(main/exit))
+				(do
+					(main/warn "FATAL: conflicting capsule names found: " capsule-names)
+					(main/exit))
 			:else
-			(update-in project cc/path-types
-				#(let [new-project ; make type name explicit
-								(reduce-kv (fn [types type-key type-map]
-									(merge types
-										{ type-key
-											(merge type-map { :name (or
-												(:name type-map)
-												(default-capsule-name project)) } ) } )) %1 %1)]
-									 ; (main/info "\nNew types: " res) ; TODO Comment out/remove once working
-					new-project)))))
+				(update-in project cc/path-types
+					#(let [new-project ; make type name explicit
+									(reduce-kv (fn [types type-key type-map]
+										(merge types
+											{ type-key
+												(merge type-map { :name (or
+													(:name type-map)
+													(default-capsule-name project)) } ) } )) %1 %1)]
+										 ; (main/info "\nNew types: " res) ; TODO Comment out/remove once working
+						new-project)))))
 
 ; TODO Improve error reporting
 (defn- validate-capsule-profiles [project]
@@ -221,11 +230,11 @@
 				default-profiles-count (count (filter nil? (map #(:default %1) (vals modes))))]
 		(cond
 			(> default-profiles-count 1)
-			(do
-				(main/warn "FATAL: at most one mode can be marked as default")
-				(main/exit))
+				(do
+					(main/warn "FATAL: at most one mode can be marked as default")
+					(main/exit))
 			:else
-			project)))
+				project)))
 
 (defn- normalize-capsule-spec [project]
 	"Performs full validation of the project capsule specification"
