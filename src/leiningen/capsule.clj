@@ -18,6 +18,8 @@
 	(main/info "\nCAPSULE, capsule build unimplemented (yet)\n")) ; TODO Implement
 
 (defn- add-to-manifest-if-path [project path manifest-entry-name f & [profile-keyword]]
+  "Will add an entry's transformation through \"f\" in the given non-profile-aware project map path (if found) to the
+  manifest map under the given profile-aware name"
 	(let [value (get-in project path)]
 		(if value
 			(update-in project (cc/capsule-manifest-path profile-keyword)
@@ -26,6 +28,8 @@
 			project)))
 
 (defn- add-to-manifest-if-profile-path [project path manifest-entry-name f & [profile-keyword]]
+  "Will add an entry's transformation through \"f\" in the given profile-aware project map path (if found) to the
+  manifest map under the given profile-aware name"
 	(add-to-manifest-if-path
 		project
 		(cc/profile-aware-path path profile-keyword)
@@ -34,12 +38,16 @@
 		profile-keyword))
 
 (defn- add-to-manifest-if-profile-path-as-string [project path manifest-entry-name & [profile-keyword]]
+  "Will add an entry's toString() in the given profile-aware project map path (if found) to the manifest map under
+  the given profile-aware name"
 	(add-to-manifest-if-profile-path project path manifest-entry-name #(.toString %1) profile-keyword))
 
 (defn- add-to-manifest [project manifest-entry-name manifest-entry-value & [profile-keyword]]
+  "Will add the specified entry to the manifest map"
 	(update-in project (cc/capsule-manifest-path profile-keyword) #(merge %1 {manifest-entry-name manifest-entry-value})))
 
 (defn- setup-boot [project & [profile-keyword]]
+  "Adds manifest entries for the executable jar's entry point"
 	(let [main-ns
 					(get-in project (cc/profile-aware-path cc/path-execution-boot-clojure-ns profile-keyword)
 						(get-in project cc/path-main))
@@ -84,6 +92,7 @@
 								(cutils/artifact-to-string artifact) profile-keyword))))))) ; This should never happen
 
 (defn- manifest-put-runtime [project & [profile-keyword]]
+  "Adds manifest entries implementing lein-capsule's runtime spec section"
 	(->
 		project
 		(add-to-manifest-if-profile-path-as-string cc/path-runtime-java-version "Java-Version" profile-keyword)
@@ -121,6 +130,7 @@
 		(add-to-manifest-if-profile-path-as-string cc/path-runtime-security-policy "Security-Policy" profile-keyword)))
 
 (defn- manifest-put-boot [project & [profile-keyword]]
+  "Adds manifest entries implementing lein-capsule's boot spec section"
 	(let [project
 					(if (not profile-keyword)
 						(add-to-manifest project "Main-Class" (get-in project cc/path-execution-boot-main-class "Capsule"))
@@ -132,12 +142,14 @@
 			(setup-boot profile-keyword))))
 
 (defn- manifest-put-execution [project & [profile-keyword]]
+  "Adds manifest entries implementing lein-capsule's execution spec section"
 	(->
 		project
 		(manifest-put-boot profile-keyword)
 		(manifest-put-runtime profile-keyword)))
 
 (defn- manifest-put-application [project & [profile-keyword]]
+  "Adds capsule's application name and version manifest entries"
 	(->
 		project
 		(add-to-manifest-if-profile-path-as-string
@@ -145,6 +157,7 @@
 		(add-to-manifest-if-profile-path-as-string cc/path-application-version "Application-Version" profile-keyword)))
 
 (defn- manifest-put-toplevel [project & [profile-keyword]]
+  "Adds manifest entries implementing lein-capsule's top-level spec parts"
 	(->
 		project
 		; TODO Implement plugin version check
@@ -153,13 +166,17 @@
 (declare capsulize)
 
 (defn- manifest-put-profiles [project]
+  "Recursively calls capsulization with profile names"
 	(reduce-kv
 		(fn [project k v]
 			(capsulize project k))
 		project (get-in project cc/path-profiles)))
 
 (defn- manifest-put-deps [project & [profile-keyword]]
-	)
+  "Adds manifest entries implementing lein-capsule's deps spec section"
+  ; TODO Implement
+  ; TODO Remember to always add clojars as additional default
+  project)
 
 (defn- capsulize [project & [profile-keyword]]
 	"Augments the manifest inserting capsule-related entries"
@@ -172,8 +189,7 @@
 						(manifest-put-toplevel profile-keyword)
 						(manifest-put-application profile-keyword)
 						(manifest-put-execution profile-keyword)
-						; TODO Implement
-						; (manifest-put-deps capsule-type) ; TODO Remember to always add clojars as additional default
+						(manifest-put-deps profile-keyword)
 						(update-in (cc/capsule-manifest-path profile-keyword)
 							#(merge %1 user-manifest)) ; priority to user manifest
 						)] ; reset manifest
