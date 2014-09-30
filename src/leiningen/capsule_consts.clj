@@ -3,7 +3,7 @@
 ; Unused for now
 ; (def type-names [:thin :fat])
 
-(def kwd-capsule-manifest :capsule-manifest)
+(def kwd-capsule-manifest :manifest)
 
 (def path-main [:main])
 
