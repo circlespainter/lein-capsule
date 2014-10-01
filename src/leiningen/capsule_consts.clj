@@ -38,12 +38,19 @@
 (def path-profiles [:capsule :profiles])
 (def path-types [:capsule :types])
 
-(defn profile-aware-path [path & [profile-keyword]]
-  (if profile-keyword
+(defn- default-profile [project & [profile-keyword]]
+  "Determines if the profile is a default one"
+  (and profile-keyword (not (get-in project [:capsule :profiles profile-keyword :default]))))
+
+(defn profile-aware-path [project path & [profile-keyword]]
+  "Returns the correct path in the project's capsule specification sub-map (source) based on path, profile name and
+  default setting"
+  (if (default-profile project profile-keyword)
     (concat [:capsule :profiles profile-keyword] path)
     (cons :capsule path)))
 
-(defn capsule-manifest-path [& [profile-keyword]]
-	(if profile-keyword
-		[kwd-capsule-manifest profile-keyword]
-		[kwd-capsule-manifest]))
+(defn capsule-manifest-path [project & [profile-keyword]]
+  "Returns the correct path in the project's manifest sub-map (target) based on profile name and default setting"
+  (if (default-profile project profile-keyword)
+    [kwd-capsule-manifest profile-keyword]
+    [kwd-capsule-manifest]))

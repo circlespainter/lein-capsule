@@ -48,7 +48,8 @@
 	;;; Optional, capsule modes, each of them can override anything except types and application settings
 		:profiles {
 			:my-profile-1 {
-				;; Optional, will ignore top-level settings and use this mode as default, defaults to false
+				;; Optional, this profile settings will override
+				;; top-level settings, defaults to false
 				:default true
 
 				:execution {
