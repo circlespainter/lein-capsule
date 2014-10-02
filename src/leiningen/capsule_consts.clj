@@ -1,7 +1,6 @@
 (ns leiningen.capsule-consts)
 
-; Unused for now
-; (def type-names [:thin :fat])
+(def clojars-repo-url "http://clojars.org/repo")
 
 (def kwd-capsule-manifest :manifest)
 
@@ -34,6 +33,13 @@
 (def path-runtime-security-manager [:runtime :security :manager])
 (def path-runtime-security-policy-a [:runtime :security :policy :append])
 (def path-runtime-security-policy [:runtime :security :policy :override])
+(def path-maven-dependencies-allow-snapshots [:maven-dependencies :allow-snapshots])
+(def path-maven-dependencies-repositories [:maven-dependencies :repositories])
+(def path-maven-dependencies-artifacts-jvm-remove [:maven-dependencies :artifacts :jvm :remove])
+(def path-maven-dependencies-artifacts-jvm-add [:maven-dependencies :artifacts :jvm :add])
+(def path-maven-dependencies-artifacts-native-mac [:maven-dependencies :artifacts :native :mac])
+(def path-maven-dependencies-artifacts-native-linux [:maven-dependencies :artifacts :native :linux])
+(def path-maven-dependencies-artifacts-native-windows [:maven-dependencies :artifacts :native :windows])
 
 (def path-profiles [:capsule :profiles])
 (def path-types [:capsule :types])

@@ -1,7 +1,10 @@
 (ns leiningen.capsule
   "Creates a capsule for the project."
+
   (:require
     [clojure.string :as cstr]
+
+    [leiningen.capsule.aether-eclipse :as aether]
 
     [leiningen.core.main :as main]
     [leiningen.core.project :as project]
@@ -11,7 +14,12 @@
     [leiningen.pprint :as pprint]
 
     [leiningen.capsule-utils :as cutils]
-    [leiningen.capsule-consts :as cc]))
+    [leiningen.capsule-consts :as cc])
+
+  (:import
+    (co.paralleluniverse.capsule.build Dependencies)
+    (org.eclipse.aether.repository RemoteRepository)
+    (org.eclipse.aether.graph Dependency)))
 
 (defn- build-capsule [project capsule-type]
   "Builds the capsule of given type using the pre-processed project map"
@@ -172,11 +180,49 @@
       (capsulize project k))
     project (get-in project cc/path-profiles)))
 
-(defn- manifest-put-deps [project & [profile-keyword]]
+(defn- manifest-put-mvn-repos [project & [profile-keyword]]
+  (add-to-manifest
+    project
+    "Repositories"
+    (cstr/join
+      ","
+      (map
+        (fn [lein-repo]
+          ; TODO Remove trick once https://github.com/cemerick/pomegranate/pull/69 is merged
+          (println lein-repo)
+          (Dependencies/toCapsuleRepositoryString (@#'aether/make-repository lein-repo nil)))
+        (:repositories project)))
+    profile-keyword))
+
+(defn- make-dep [lein-dep]
+  ; TODO Remove trick once https://github.com/cemerick/pomegranate/pull/69 is merged
+  (Dependencies/toCapsuleDependencyString (@#'aether/dependency lein-dep)))
+
+(defn- manifest-put-mvn-deps [project & [profile-keyword]]
+  (let [make-dep
+          #(Dependencies/toCapsuleDependencyString (@#'aether/dependency %1))
+        jvm-lein (map make-dep (:dependencies project))
+        jvm-removed (map make-dep (get-in project cc/path-maven-dependencies-artifacts-jvm-remove))
+        jvm-added (map make-dep (get-in project cc/path-maven-dependencies-artifacts-jvm-add))
+        jvm (cstr/join "," (concat jvm-added (seq (clojure.set/difference (set jvm-lein) (set jvm-removed)))))
+        native-mac (cstr/join "," (map make-dep (get-in project cc/path-maven-dependencies-artifacts-native-mac)))
+        native-linux (cstr/join "," (map make-dep (get-in project cc/path-maven-dependencies-artifacts-native-linux)))
+        native-win (cstr/join "," (map make-dep (get-in project cc/path-maven-dependencies-artifacts-native-windows)))]
+    (-> project
+        (add-to-manifest "Dependencies" jvm profile-keyword)
+        (add-to-manifest "Native-Dependencies-mac" native-mac profile-keyword)
+        (add-to-manifest "Native-Dependencies-Linux" native-linux profile-keyword)
+        (add-to-manifest "Native-Dependencies-Win" native-win profile-keyword))))
+
+(defn- manifest-put-maven [project & [profile-keyword]]
   "Adds manifest entries implementing lein-capsule's deps spec section"
-  ; TODO Implement
-  ; TODO Remember to always add clojars as additional default
-  project)
+  (->
+    project
+    (add-to-manifest-if-profile-path-as-string
+      cc/path-maven-dependencies-allow-snapshots "Allow-Snapshots" profile-keyword)
+    (update-in cc/path-maven-dependencies-repositories #(cons cc/clojars-repo-url %1))
+    (manifest-put-mvn-repos profile-keyword)
+    (manifest-put-mvn-deps profile-keyword)))
 
 (defn- capsulize [project & [profile-keyword]]
   "Augments the manifest inserting capsule-related entries"
@@ -188,8 +234,8 @@
             (manifest-put-toplevel profile-keyword)
             (manifest-put-application profile-keyword)
             (manifest-put-execution profile-keyword)
-            (manifest-put-deps profile-keyword)
-            (maybe-manifest-put-profiles)
+            (manifest-put-maven profile-keyword)
+            (maybe-manifest-put-profiles) ; Needs to be the last step as the default profile can override anything
             (update-in (cc/capsule-manifest-path project profile-keyword)
               ; priority to user manifest
               #(merge %1 user-manifest)))]
