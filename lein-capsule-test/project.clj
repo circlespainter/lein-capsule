@@ -26,6 +26,7 @@
   :capsule {
 
   ;;; Optional
+    ; TODO Implement
     :min-plugin-version "0.1.0-SNAPSHOT"
 
   ;;; Optional, corresponds 1:1 to Log-Level manifest entry
@@ -56,11 +57,8 @@
           :runtime {
             :jdk-required true } }
 
-        ;; Optional
-        :base-type {
-          ;; Either :fat-ecept or :thin-except must be specified
-          :fat-except [[org.clojure/clojure "1.6.0"]]
-        } } ]
+        ;; Either :fat-ecept or :thin-except must be specified
+        :fat-except [[org.clojure/clojure "1.6.0"]] } ]
 
       ;; Optional, shortcut for building a single capsule of type :fat-except Clojure's artifact
       ; TODO Implement build support
