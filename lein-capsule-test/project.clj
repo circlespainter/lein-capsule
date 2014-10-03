@@ -1,3 +1,6 @@
+; TODO Implement actual build
+; TODO Remove debug prints
+
 (defproject lein-capsule-test "0.1.0-SNAPSHOT"
   :description "FIXME: write description"
 
@@ -21,8 +24,9 @@
 
   ;;; Capsule plugin configuration section, optional
   :capsule {
+
   ;;; Optional
-    :min-plugin-version "0.1.0-SNAPSHOT" ; TODO Implement
+    :min-plugin-version "0.1.0-SNAPSHOT"
 
   ;;; Optional, corresponds 1:1 to Log-Level manifest entry
     :log-level "info"
@@ -41,7 +45,28 @@
 
         :execution {
           :runtime {
-            :jdk-required true } } } }
+            :jdk-required true } } }
+
+      ;; Optional, can override anything, will trigger building a mixed capsule
+      ; TODO Implement build support
+      :mixed [ {
+        :name "first-and-only-mixed-capsule.jar"
+
+        :execution {
+          :runtime {
+            :jdk-required true } }
+
+        ;; Optional
+        :base-type {
+          ;; Either :fat-ecept or :thin-except must be specified
+          :fat-except [[org.clojure/clojure "1.6.0"]]
+        } } ]
+
+      ;; Optional, shortcut for building a single capsule of type :fat-except Clojure's artifact
+      ; TODO Implement build support
+      :fat-except-clojure {
+        :name "fat-without-clojure.jar"
+      } }
 
   ;;; Optional, check https://github.com/puniverse/capsule#application-id for defaults
     :application {
@@ -164,6 +189,7 @@
       :repositories [central]
 
       ;; Optional
+      ; TODO Complete manfest support
       :artifacts {
         ;; Optional
         :jvm {
