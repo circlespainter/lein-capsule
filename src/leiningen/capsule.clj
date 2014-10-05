@@ -4,7 +4,7 @@
   (:require
     [clojure.string :as cstr]
 
-    [leiningen.capsule.aether-eclipse :as aether]
+    [leiningen.capsule.aether :as aether]
 
     [leiningen.core.main :as main]
     [leiningen.core.project :as project]
@@ -28,11 +28,12 @@
 (defn- add-to-manifest-if-path [project path manifest-entry-name f & [profile-keyword]]
   "Will add an entry's transformation through \"f\" in the given non-profile-aware project map path (if found) to the
   manifest map under the given profile-aware name"
-  (let [value (get-in project path)]
-    (if value
+  (let [value (get-in project path)
+        transformed-value (f value)]
+    (if (and value transformed-value)
       (update-in project (cc/capsule-manifest-path project profile-keyword)
         #(merge (or %1 {})
-          {manifest-entry-name (f value)}))
+          { manifest-entry-name transformed-value }))
       project)))
 
 (defn- add-to-manifest-if-profile-path [project path manifest-entry-name f & [profile-keyword]]
@@ -48,11 +49,17 @@
 (defn- add-to-manifest-if-profile-path-as-string [project path manifest-entry-name & [profile-keyword]]
   "Will add an entry's toString() in the given profile-aware project map path (if found) to the manifest map under
   the given profile-aware name"
-  (add-to-manifest-if-profile-path project path manifest-entry-name #(.toString %1) profile-keyword))
+  (add-to-manifest-if-profile-path
+    project
+    path manifest-entry-name
+    #(if %1 (let [val (.toString %1)] (if (seq val) val nil)) nil)
+    profile-keyword))
 
 (defn- add-to-manifest [project manifest-entry-name manifest-entry-value & [profile-keyword]]
   "Will add the specified entry to the manifest map"
-  (update-in project (cc/capsule-manifest-path project profile-keyword) #(merge %1 {manifest-entry-name manifest-entry-value})))
+  (if (seq manifest-entry-value)
+    (update-in project (cc/capsule-manifest-path project profile-keyword) #(merge %1 { manifest-entry-name manifest-entry-value }))
+    project))
 
 (defn- setup-boot [project & [profile-keyword]]
   "Adds manifest entries for the executable jar's entry point"
@@ -118,8 +125,8 @@
               (= k :embedded)
                 (str (:jar v) "=" (:params v))
               (= k :artifact)
-                (str (cutils/artifact-to-string (:id v)) "=" (:params v))))
-          "" %1))
+                (str (cutils/artifact-to-string (:id v)) "=" (:params v)))))
+        "" %1)
       profile-keyword)
     (add-to-manifest-if-profile-path
       cc/path-runtime-app-class-path "App-Class-Path" #(cstr/join " " %1) profile-keyword)
@@ -264,28 +271,49 @@
 (defn- normalize-types [project]
   "Validates (and makes more handy for subsequent build steps) the specification of capsules to be built"
   (let [types (get-in project cc/path-types)
-        capsule-names (filter identity (map #(:name %1) (vals types)))
+        capsule-names (filter identity (flatten
+          (map
+            #(cond
+              (map? %1) (:name %1)
+              (coll? %1) (map (fn [elem] (:name elem)) %1)
+              :else nil)
+            (vals types))))
         ; _ (main/info "\nCapsule names: " capsule-names) ; TODO Comment out/remove once working
         capsule-names-count (count capsule-names)]
     (cond
-      (> (count (keys types)) (+ 1 capsule-names-count)) ; At most one type can avoid specifying capsule name
-        (do
-          (main/warn "FATAL: all capsule types must define capsule names (except one at most), exiting")
-          (main/exit))
+      (>
+        (apply +
+          (map
+            #(cond
+              (map? %1) 1
+              (coll? %1) (count %1)
+              :else 0)
+            (vals types)))
+        (+ 1 capsule-names-count)) ; At most one type can avoid specifying capsule name
+          (do
+            (main/warn "FATAL: all capsule types must define capsule names (except one at most), exiting")
+            (main/exit))
       (not= capsule-names-count (count (distinct capsule-names))) ; Names must be non-conflicting
         (do
           (main/warn "FATAL: conflicting capsule names found: " capsule-names)
           (main/exit))
       :else
         (update-in project cc/path-types
-          #(let [new-project ; make type name explicit
-                  (reduce-kv (fn [types type-key type-map]
+          #(let [set-explicit-name
+                  (fn [type-val] (merge type-val {:name (or
+                    (:name type-val)
+                    (default-capsule-name project))}))
+                 new-project ; make type name explicit
+                  (reduce-kv (fn [types type-key type-val]
                     (merge types
                       { type-key
-                        (merge type-map { :name (or
-                          (:name type-map)
-                          (default-capsule-name project)) } ) } )) %1 %1)]
-            ; (main/info "\nNew types: " res) ; TODO Comment out/remove once working
+                        (cond
+                          (map? type-val)
+                            (set-explicit-name type-val)
+                          (coll? type-val)
+                            (map set-explicit-name type-val)
+                          :else type-val)
+                        } )) %1 %1)]
             new-project)))))
 
 ; TODO Improve error reporting

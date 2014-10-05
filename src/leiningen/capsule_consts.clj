@@ -2,7 +2,9 @@
 
 (def clojars-repo-url "http://clojars.org/repo")
 
-(def kwd-capsule-manifest :manifest)
+;; TODO Restore it to :manifest when https://github.com/technomancy/leiningen/pull/1700 is merged
+;; In the meanwhile going on with alternative impl.
+(def kwd-capsule-manifest :capsule-manifest)
 
 (def path-main [:main])
 

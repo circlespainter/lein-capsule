@@ -26,7 +26,7 @@
   :capsule {
 
   ;;; Optional
-    ; TODO Implement
+    ; TODO Implement plugin version check
     :min-plugin-version "0.1.0-SNAPSHOT"
 
   ;;; Optional, corresponds 1:1 to Log-Level manifest entry
@@ -49,7 +49,6 @@
             :jdk-required true } } }
 
       ;; Optional, can override anything, will trigger building a mixed capsule
-      ; TODO Implement build support
       :mixed [ {
         :name "first-and-only-mixed-capsule.jar"
 
@@ -61,7 +60,6 @@
         :fat-except [[org.clojure/clojure "1.6.0"]] } ]
 
       ;; Optional, shortcut for building a single capsule of type :fat-except Clojure's artifact
-      ; TODO Implement build support
       :fat-except-clojure {
         :name "fat-without-clojure.jar"
       } }
@@ -187,7 +185,6 @@
       :repositories [central]
 
       ;; Optional
-      ; TODO Complete manfest support
       :artifacts {
         ;; Optional
         :jvm {
