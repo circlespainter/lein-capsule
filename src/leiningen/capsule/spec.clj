@@ -151,32 +151,13 @@
     project
     (get-in project cc/path-profiles)))
 
-(defn- manifest-put-mvn-repos [project & [profile-keyword]]
-  (cutils/add-to-manifest
-    project
-    "Repositories"
-    (cstr/join
-      ","
-      (map
-        (fn [lein-repo]
-          ; TODO Remove trick once https://github.com/cemerick/pomegranate/pull/69 is merged
-          (println lein-repo)
-          (Dependencies/toCapsuleRepositoryString (@#'aether-ported/make-repository lein-repo nil)))
-        (:repositories project)))
-    profile-keyword))
-
-(defn- make-dep [lein-dep]
-  ; TODO Remove trick once https://github.com/cemerick/pomegranate/pull/69 is merged
-  (Dependencies/toCapsuleDependencyString (@#'aether-ported/dependency lein-dep)))
-
 (defn- manifest-put-maven [project & [profile-keyword]]
   "Adds manifest entries implementing lein-capsule's deps spec section"
   (->
     project
     (cutils/add-to-manifest-if-profile-path-as-string
       cc/path-maven-dependencies-allow-snapshots "Allow-Snapshots" profile-keyword)
-    (update-in cc/path-maven-dependencies-repositories #(cons cc/clojars-repo-url %))
-    (manifest-put-mvn-repos profile-keyword)))
+    (update-in cc/path-maven-dependencies-repositories #(cons cc/clojars-repo-url %))))
 
 (defn ^:internal capsulize [project & [profile-keyword]]
   "Augments the manifest inserting capsule-related entries"
@@ -212,7 +193,7 @@
 
 (defn- default-capsule-name [project]
   "Extracts or build the default capsule name"
-  (or (get-in project cc/path-capsule-default-name) (str (:name project) "-capsule")))
+  (str (or (get-in project cc/path-capsule-default-name) (:name project)) "-capsule.jar"))
 
 ; TODO Improve error reporting
 (defn- normalize-types [project]

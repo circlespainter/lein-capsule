@@ -2,15 +2,14 @@
   "Various capsule-building utilities"
   (:require [leiningen.capsule.consts :as cc]))
 
+(defn- flatten-inner [coll]
+  )
+
 (defn ^:internal get-capsule-types [project]
   "Extracts, normalizes and returns the enabled capsule types sub-map, if any"
-  (flatten
-    (map
-      (fn [[k v]]
-        (cond
-          (coll? v) (map #([k %]) v)
-          :else [k v]))
-      (seq (get-in project cc/path-types)))))
+  (mapcat
+    #(let [[k v] %] (if (sequential? v) (map (fn [e] [k e]) v) [%]))
+    (seq (get-in project cc/path-types))))
 
 (defn ^:internal get-capsule-default-profile [project]
   "Extracts and returns the default capsule profile sub-map, if any"

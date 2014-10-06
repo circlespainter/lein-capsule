@@ -18,12 +18,10 @@
   [project & args]
   (let [default-profile (cutils/get-capsule-default-profile project)
         project (cspec/validate-and-normalize project)]
-    (doseq []
-      (fn [[capsule-type-name v]]
-        (let [project (cutils/get-project-without-default-profile project)
-              project (project/merge-profiles project [{:capsule default-profile} {:capsule v}])
-              project (cspec/capsulize project)]
-          (clean/clean project) ; TODO Improve: avoid cleaning if/when possible
-          (apply compile/compile (cons project args))
-          (cbuild/build-capsule project capsule-type-name v)))
-      (cutils/get-capsule-types project))))
+    (doseq [[capsule-type-name v] (cutils/get-capsule-types project)]
+      (let [project (cutils/get-project-without-default-profile project)
+            project (project/merge-profiles project [{:capsule default-profile} {:capsule v}])
+            project (cspec/capsulize project)]
+        (clean/clean project) ; TODO Improve: avoid cleaning if/when possible
+        (apply compile/compile (cons project args))
+        (cbuild/build-capsule project capsule-type-name v)))))

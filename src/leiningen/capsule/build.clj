@@ -42,17 +42,17 @@
   (capsule-deps project cc/path-maven-dependencies-artifacts-native-windows profile-keyword))
 
 (defn- jvm-computed-capsule-deps [project & [profile-keyword]]
-  (conj
+  (concat
     (jvm-capsule-added-deps project profile-keyword)
-    (seq
+    (vec
       (clojure.set/difference
-        (set (jvm-lein-deps project profile-keyword))
+        (set (jvm-lein-deps project))
         (set (jvm-capsule-removed-deps project profile-keyword))))))
 
 (defn- xdual [mode]
-  (case mode
-    :except :xonly
-    :only :xexcept
+  (cond
+    (= mode :except) :xonly
+    (= mode :only) :xexcept
     :else mode))
 
 (defn- dep-matches [dep1 dep2]
@@ -67,39 +67,57 @@
   (some #(dep-matches dep %) coll))
 
 (defn- filter-deps [deps exceptions exceptions-mode]
-  (if exceptions
-    (filter
-      #(let [match (dep-matches-any % exceptions)]
-        (case (or exceptions-mode :except)
-          (:except :xexcept) (not match)
-          (:only :xonly) match
-          :else true)))
-    deps)
-  deps)
+  (if (and deps exceptions)
+    (do
+      (filter
+        #(let [match (dep-matches-any % exceptions)]
+          (case (or exceptions-mode :except)
+            (:except :xexcept) (not match)
+            (:only :xonly) match
+            :else true))
+        deps))
+    deps))
+
+(defn- make-aether-repo [lein-repo]
+  ; TODO Remove trick once https://github.com/cemerick/pomegranate/pull/69 is merged
+  (Dependencies/toCapsuleRepositoryString (@#'aether-ported/make-repository lein-repo nil)))
+
+(defn- lein-repos [project] (:repositories project))
+
+(defn- manifest-put-mvn-repos [project & [profile-keyword]]
+  (cutils/add-to-manifest
+    project
+    "Repositories"
+    (cstr/join
+      ","
+      (map
+        make-aether-repo
+        (lein-repos project)))
+    profile-keyword))
 
 (declare retrieve-and-insert-mvn-deps)
 
 (defn- manifest-put-mvn-deps [project capsule & [profile-keyword exceptions exceptions-mode]]
   (let [jvm
-        (cstr/join "," (map make-aether-dep
-                            (filter-deps (jvm-computed-capsule-deps project profile-keyword) exceptions exceptions-mode)))
+          (cstr/join "," (map make-aether-dep
+                              (filter-deps (jvm-computed-capsule-deps project profile-keyword) exceptions exceptions-mode)))
         native-mac
-        (cstr/join "," (map make-aether-dep
-                            (filter-deps (native-mac-capsule-deps project profile-keyword) exceptions exceptions-mode)))
+          (cstr/join "," (map make-aether-dep
+                              (filter-deps (native-mac-capsule-deps project profile-keyword) exceptions exceptions-mode)))
         native-linux
-        (cstr/join "," (map make-aether-dep
-                            (filter-deps (native-linux-capsule-deps project profile-keyword) exceptions exceptions-mode)))
+          (cstr/join "," (map make-aether-dep
+                              (filter-deps (native-linux-capsule-deps project profile-keyword) exceptions exceptions-mode)))
         native-win
-        (cstr/join "," (map make-aether-dep
-                            (filter-deps (native-windows-capsule-deps project profile-keyword) exceptions exceptions-mode)))
+          (cstr/join "," (map make-aether-dep
+                              (filter-deps (native-windows-capsule-deps project profile-keyword) exceptions exceptions-mode)))
         insert-inline-deps
-        (if (contains? #{:xexcept :xonly} exceptions-mode) (fn [_ _ & [_ _ _]]) retrieve-and-insert-mvn-deps)]
+          (if (contains? #{:xexcept :xonly} exceptions-mode) (fn [_ _ & [_ _ _]]) retrieve-and-insert-mvn-deps)]
     (-> project
         (cutils/add-to-manifest "Dependencies" jvm profile-keyword)
         (cutils/add-to-manifest "Native-Dependencies-mac" native-mac profile-keyword)
         (cutils/add-to-manifest "Native-Dependencies-Linux" native-linux profile-keyword)
         (cutils/add-to-manifest "Native-Dependencies-Win" native-win profile-keyword)
-        (insert-inline-deps project capsule profile-keyword exceptions (xdual exceptions-mode)))))
+        (insert-inline-deps capsule profile-keyword exceptions (xdual exceptions-mode)))))
 
 (defn- retrieve-and-insert-mvn-deps [project capsule & [profile-keyword exceptions exceptions-mode]]
   (let [jvm (filter-deps (jvm-computed-capsule-deps project profile-keyword) exceptions exceptions-mode)
@@ -107,13 +125,17 @@
         native-linux (filter-deps (native-linux-capsule-deps project profile-keyword) exceptions exceptions-mode)
         native-win (filter-deps (native-windows-capsule-deps project profile-keyword) exceptions exceptions-mode)
         insert-manifest-deps
-        (if (contains? #{:xexcept :xonly} exceptions-mode) (fn [_ _ & [_ _ _]]) manifest-put-mvn-deps)]
-    (doseq [dep (aether/resolve-dependencies (conj jvm native-mac native-linux native-win))]
-      (.addEntry "/" capsule (:file (meta dep))))
+          (if (contains? #{:xexcept :xonly} exceptions-mode) (fn [_ _ & [_ _ _]]) manifest-put-mvn-deps)]
+    (doseq [dep-file
+              (aether/dependency-files
+                (aether/resolve-dependencies
+                  :coordinates (concat jvm native-mac native-linux native-win)
+                  :repositories (lein-repos project)))]
+      (.addEntry capsule (str "/" (.getName dep-file)) dep-file))
     (insert-manifest-deps project capsule profile-keyword exceptions (xdual exceptions-mode))))
 
 (defn- write-manifest [capsule project]
-  (doseq [[k v] (get-in project cc/capsule-manifest-path)]
+  (doseq [[k v] (get-in project (cc/capsule-manifest-path project))]
     (cond
       (string? v) (.setAttribute capsule k v)
       (coll? v)
@@ -121,39 +143,42 @@
         (.setAttribute capsule k section-k section-v)))))
 
 (defn- capsule-output-stream [project spec]
-  (FileOutputStream. (str (:root project) "/build/" (:name spec))))
+  (let [out-file-name (str (:root project) "/target/" (:name spec))]
+    (clojure.java.io/make-parents out-file-name)
+    (FileOutputStream. out-file-name)))
 
 (defn- build-mixed-thin [project spec & [excepts]]
   ; Will add every dependency to the manifest
-  (let [
-         capsule (Jar.)
-         project
-         (reduce-kv
-           (fn [project k _]
-             (-> project
-                 (retrieve-and-insert-mvn-deps capsule k excepts :only)
-                 (manifest-put-mvn-deps capsule k excepts :except)))
-           project
-           (get-in project cc/path-profiles))]
+  (let [capsule (Jar.)
+        _ (.setOutputStream capsule (capsule-output-stream project spec))
+        project
+          (reduce-kv
+            (fn [project k _]
+              (-> project
+                  (manifest-put-mvn-repos k)
+                  (manifest-put-mvn-deps capsule k excepts :except)
+                  (retrieve-and-insert-mvn-deps capsule k excepts :only)))
+            project
+            (get-in project cc/path-profiles))]
     (write-manifest capsule project)
     (doto capsule
-      (.setOutputStream (capsule-output-stream project spec))
       (.addClass (Class/forName "Capsule"))
       (.addPackageOf (Class/forName "capsule.UserSettings"))
       .close)))
 
 (defn- build-mixed-fat [project spec & [excepts]]
   (let [capsule (Jar.)]
+    (.setOutputStream capsule (capsule-output-stream project spec))
     (reduce-kv
       (fn [project k _]
         (-> project
-            (retrieve-and-insert-mvn-deps capsule k excepts :except))
-        (manifest-put-mvn-deps capsule k excepts :only))
+            (manifest-put-mvn-repos k)
+            (manifest-put-mvn-deps capsule k excepts :only)
+            (retrieve-and-insert-mvn-deps capsule k excepts :except)))
       project
       (get-in project cc/path-profiles))
     (write-manifest capsule project)
     (doto capsule
-      (.setOutputStream (capsule-output-stream project spec))
       (.addClass (Class/forName "Capsule"))
       .close)))
 
