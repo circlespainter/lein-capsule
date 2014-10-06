@@ -1,6 +1,3 @@
-; TODO Implement actual build
-; TODO Remove debug prints
-
 (defproject lein-capsule-test "0.1.0-SNAPSHOT"
   :description "FIXME: write description"
 
@@ -57,12 +54,15 @@
             :jdk-required true } }
 
         ;; Either :fat-ecept or :thin-except must be specified
-        :fat-except [[org.clojure/clojure "1.6.0"]] } ]
+        :fat-except [[org.clojure/clojure]] } ]
 
-      ;; Optional, shortcut for building a single capsule of type :fat-except Clojure's artifact
+      ;; Optional, can override anything, shortcut for building a single capsule of type :fat-except Clojure's artifact
       :fat-except-clojure {
-        :name "fat-without-clojure.jar"
-      } }
+        :name "fat-without-clojure.jar" }
+
+      ;; Optional, can override anything, shortcut for building a single capsule of type :thin-except Clojure's artifact
+      :thin-except-clojure {
+        :name "thin-without-clojure.jar" } }
 
   ;;; Optional, check https://github.com/puniverse/capsule#application-id for defaults
     :application {

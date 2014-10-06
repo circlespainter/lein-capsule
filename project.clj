@@ -7,6 +7,7 @@
 	:dependencies [[lein-pprint "1.1.1"]
                  [com.cemerick/pomegranate "0.3.0"]
                  [org.eclipse.aether/aether-api "1.0.0.v20140518"]
+                 [co.paralleluniverse/capsule "0.10.0-SNAPSHOT"]
                  [co.paralleluniverse/capsule-build "0.10.0-SNAPSHOT"]
                  [co.paralleluniverse/capsule-util "0.10.0-SNAPSHOT"]]
 
