@@ -22,6 +22,9 @@
   ;;; Capsule plugin configuration section, optional
   :capsule {
 
+  ;;; Optional, defaults to "capsules" in project root, can't be overridden
+    :output-dir "my-capsules"
+
   ;;; Optional
     ; TODO Implement plugin version check
     :min-plugin-version "0.1.0-SNAPSHOT"
@@ -39,7 +42,7 @@
 
       ;; Optional, can override anything, will trigger building a fat capsule
       :fat {
-        :name "capsule-fat.jar"
+        :name "fat-capsule.jar"
 
         :execution {
           :runtime {
@@ -58,11 +61,11 @@
 
       ;; Optional, can override anything, shortcut for building a single capsule of type :fat-except Clojure's artifact
       :fat-except-clojure {
-        :name "fat-without-clojure.jar" }
+        :name "fat-without-clojure-capsule.jar" }
 
       ;; Optional, can override anything, shortcut for building a single capsule of type :thin-except Clojure's artifact
       :thin-except-clojure {
-        :name "thin-without-clojure.jar" } }
+        :name "thin-with-clojure-capsule.jar" } }
 
   ;;; Optional, check https://github.com/puniverse/capsule#application-id for defaults
     :application {
@@ -91,7 +94,8 @@
         ;; Optional, corresponds 1:1 to Main-Class manifest entry, default is "Capsule"
         :main-class "Capsule"
 
-        ;; Optional, corresponds 1:1 to Extract-Capsule manifest entry, check https://github.com/puniverse/capsule#capsules-cache for defaults
+        ;; Optional, corresponds 1:1 to Extract-Capsule manifest entry, check https://github.com/puniverse/capsule#capsules-cache for defaults;
+        ;; If the value here is not meaningful for the type of capsule to be built, it will be overridden automatically
         :extract-capsule false
 
         ;; Optional, if missing it'll be Leiningen's :main unless one of the following two is specified

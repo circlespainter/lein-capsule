@@ -2,9 +2,6 @@
   "Various capsule-building utilities"
   (:require [leiningen.capsule.consts :as cc]))
 
-(defn- flatten-inner [coll]
-  )
-
 (defn ^:internal get-capsule-types [project]
   "Extracts, normalizes and returns the enabled capsule types sub-map, if any"
   (mapcat
@@ -41,7 +38,7 @@
   manifest map under the given profile-aware name"
   (let [value (get-in project path)
         transformed-value (f value)]
-    (if (and value transformed-value)
+    (if (and (not (nil? value)) transformed-value)
       (update-in project (cc/capsule-manifest-path project profile-keyword)
                  #(merge
                    (or % {})
@@ -64,7 +61,7 @@
   (add-to-manifest-if-profile-path
     project
     path manifest-entry-name
-    #(if % (let [val (.toString %)] (if (seq val) val nil)) nil)
+    #(if (not (nil? %)) (let [val (.toString %)] (if (seq val) val)))
     profile-keyword))
 
 (defn ^:internal add-to-manifest [project manifest-entry-name manifest-entry-value & [profile-keyword]]

@@ -2,12 +2,13 @@
 
 (def ^:internal clojars-repo-url "http://clojars.org/repo")
 
-;; TODO Restore it to :manifest when https://github.com/technomancy/leiningen/pull/1700 is merged
+;; TODO Restore it to :manifest and maybe try reusing some uberjar logic when https://github.com/technomancy/leiningen/pull/1700 is merged
 ;; In the meanwhile going on with alternative impl.
 (def ^:internal kwd-capsule-manifest :capsule-manifest)
 
 (def ^:internal path-main [:main])
 
+(def ^:internal path-output-dir [:output-dir])
 (def ^:internal path-log-level [:log-level])
 (def ^:internal path-application-name [:application :name])
 (def ^:internal path-application-version [:application :version])
