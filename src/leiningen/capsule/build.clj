@@ -158,11 +158,11 @@
         (.setAttribute capsule (name k) section-k section-v)))))
 
 (defn- get-capsules-output-dir [project]
-  (or (get-in project (cons :capsule cc/path-output-dir)) "capsules"))
+  (str (:target-path project) "/" (or (.toString (get-in project (cons :capsule cc/path-output-dir))) "capsules")))
 
 (defn- capsule-output-stream [project spec]
   "Builds a mixed capsule based on thin defaults"
-  (let [out-file-name (str (:root project) "/" (get-capsules-output-dir project) "/" (:name spec))]
+  (let [out-file-name (str (get-capsules-output-dir project) "/" (:name spec))]
     (clojure.java.io/make-parents out-file-name)
     (FileOutputStream. out-file-name)))
 
@@ -222,13 +222,13 @@
     :else
       (throw (RuntimeException. "Unexpected mixed capsule type specified, use either :fat-except or :thin-except"))))
 
-(defn ^:internal build-capsule [project capsule-type-name capsule-type-spec]
+(defn ^:internal build-capsule [jar-files project capsule-type-name capsule-type-spec]
   "Builds the capsule(s) of a given type using the pre-processed project map"
-  (main/info (str "Building capsule type '" (name capsule-type-name)
-                  "' into '" (get-capsules-output-dir project) "/" (:name capsule-type-spec) "'"))
   (case capsule-type-name
     :thin (build-thin-spec project capsule-type-spec)
     :fat (build-fat-spec project capsule-type-spec)
     :thin-except-clojure (build-thin-except-clojure-spec project capsule-type-spec)
     :fat-except-clojure (build-fat-except-clojure-spec project capsule-type-spec)
-    :mixed (build-mixed-spec project capsule-type-spec)))
+    :mixed (build-mixed-spec project capsule-type-spec))
+  (main/info (str "Created " (name capsule-type-name) " capsule into "
+                  (get-capsules-output-dir project) "/" (:name capsule-type-spec) "")))

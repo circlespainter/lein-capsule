@@ -22,7 +22,7 @@
   ;;; Capsule plugin configuration section, optional
   :capsule {
 
-  ;;; Optional, defaults to "capsules" in project root, can't be overridden
+  ;;; Optional, defaults to "capsules" in project target dir, can't be overridden
     :output-dir "my-capsules"
 
   ;;; Optional
@@ -83,7 +83,7 @@
 
         :execution {
           :boot {
-            :clojure-ns main2 } } }
+            :clojure-ns lein-capsule-test.core } } }
 
       :my-profile-2 {} }
 

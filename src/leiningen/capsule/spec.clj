@@ -193,7 +193,7 @@
 
 (defn- default-capsule-name [project]
   "Extracts or build the default capsule name"
-  (str (or (get-in project cc/path-capsule-default-name) (:name project)) "-capsule.jar"))
+  (str (or (get-in project cc/path-capsule-default-name) (:name project)) "-" (:version project) "-capsule.jar"))
 
 ; TODO Improve error reporting
 (defn- normalize-types [project]
