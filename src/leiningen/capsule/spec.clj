@@ -13,11 +13,7 @@
 
     [leiningen.capsule.utils :as cutils]
     [leiningen.capsule.consts :as cc]
-    [leiningen.capsule.build :as cbuild])
-
-  (:import
-    (org.eclipse.aether.repository RemoteRepository)
-    (co.paralleluniverse.capsule.build Dependencies)))
+    [leiningen.capsule.build :as cbuild]))
 
 ; TODO Find better way or check correctness
 (defn- java-mangle-ns [main-ns]
@@ -222,32 +218,32 @@
                    :else 0)
                  (vals types)))
         (+ 1 capsule-names-count)) ; At most one type can avoid specifying capsule name
-      (do
-        (main/warn "FATAL: all capsule types must define capsule names (except one at most), exiting")
-        (main/exit))
+        (do
+          (main/warn "FATAL: all capsule types must define capsule names (except one at most), exiting")
+          (main/exit))
       (not= capsule-names-count (count (distinct capsule-names))) ; Names must be non-conflicting
-      (do
-        (main/warn "FATAL: conflicting capsule names found: " capsule-names)
-        (main/exit))
+        (do
+          (main/warn "FATAL: conflicting capsule names found: " capsule-names)
+          (main/exit))
       :else
-      (update-in project cc/path-types
-                 #(let [set-explicit-name
-                        (fn [type-val] (merge type-val {:name (or
-                                                                (:name type-val)
-                                                                (default-capsule-name project))}))
-                        new-project ; make type name explicit
-                        (reduce-kv
-                          (fn [types type-key type-val]
-                            (merge types
-                                   { type-key
-                                     (cond
-                                       (map? type-val)
-                                       (set-explicit-name type-val)
-                                       (coll? type-val)
-                                       (map set-explicit-name type-val)
-                                       :else type-val) } ))
-                          % %)]
-                   new-project)))))
+        (update-in project cc/path-types
+                   #(let [set-explicit-name
+                            (fn [type-val] (merge type-val {:name (or
+                                                                    (:name type-val)
+                                                                    (default-capsule-name project))}))
+                          new-project ; make type name explicit
+                            (reduce-kv
+                              (fn [types type-key type-val]
+                                (merge types
+                                       { type-key
+                                         (cond
+                                           (map? type-val)
+                                           (set-explicit-name type-val)
+                                           (coll? type-val)
+                                           (map set-explicit-name type-val)
+                                           :else type-val) } ))
+                              % %)]
+                       new-project)))))
 
 ; TODO Improve error reporting
 (defn- validate-capsule-modes [project]
@@ -256,9 +252,9 @@
         default-modes-count (count (filter nil? (map #(:default %) (vals modes))))]
     (cond
       (> default-modes-count 1)
-      (do
-        (main/warn "FATAL: at most one mode can be marked as default")
-        (main/exit))
+        (do
+          (main/warn "FATAL: at most one mode can be marked as default")
+          (main/exit))
       :else
       project)))
 

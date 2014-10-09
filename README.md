@@ -56,6 +56,7 @@ From project root:
 [Marginalia](https://github.com/gdeer81/marginalia)
 - More examples
 - Various TODOs in code
+- Uberjar-style dedicated profile?
 
 ## License
 

@@ -16,9 +16,8 @@
 
   (:import
     (co.paralleluniverse.capsule.build Dependencies)
-    (org.eclipse.aether.graph Dependency)
     (co.paralleluniverse.capsule Jar)
-    (java.io File FileOutputStream FileInputStream)
+    (java.io File FileOutputStream)
     (java.nio.file Path Paths Files StandardOpenOption OpenOption)
     (java.util.zip ZipInputStream)
     (java.util UUID)))
@@ -67,11 +66,11 @@
 (defn- dependency-matches-exception [dep dep-exc]
   "Tells if the dependecies match"
   (or
-     (= dep-exc dep)
-     (and
-       (coll? dep-exc) (coll? dep)
-       (<= 1 (count dep-exc) (count dep))
-       (= (first dep-exc) (first dep)))))
+    (= dep-exc dep)
+    (and
+      (coll? dep-exc) (coll? dep)
+      (<= 1 (count dep-exc) (count dep))
+      (= (first dep-exc) (first dep)))))
 
 (defn- dependency-matches-any-exceptions [dep exceptions]
   "Tells if the dependency matches any in the given collection"
@@ -80,7 +79,8 @@
 (defn- filter-deps [deps exceptions exceptions-mode]
   "Filter dependencies based on exceptions specification"
   (cond
-    (and (= exceptions-mode :only) (not (seq exceptions))) []
+    (and (= exceptions-mode :only)(not (seq exceptions)))
+      []
     (and deps (seq exceptions))
       (do
         (filter
@@ -154,10 +154,11 @@
   "Writes the Capsule manifest"
   (doseq [[k v] (get-in project (cc/capsule-manifest-path project))]
     (cond
-      (string? v) (.setAttribute capsule k v)
+      (string? v)
+        (.setAttribute capsule k v)
       (coll? v)
-      (doseq [[section-k section-v] v]
-        (.setAttribute capsule (name k) section-k section-v)))))
+        (doseq [[section-k section-v] v]
+          (.setAttribute capsule (name k) section-k section-v)))))
 
 (defn- get-capsules-output-dir [project]
   "Computes the capsules output dir starting from the project target folder based on specification or sensible defaults"
@@ -187,6 +188,7 @@
 (defn- build-mixed [base-type jar-files project spec & [excepts]]
   "Builds a mixed capsule"
   ; Will add every dependency to the manifest
+  ; TODO Cleanup, empty bindings for side-effects are ugly
   (let [capsule (Jar.)
         _ (.setOutputStream capsule (capsule-output-stream project spec))
         project
