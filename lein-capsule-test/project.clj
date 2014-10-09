@@ -45,7 +45,7 @@
 
   ;;; Optional, default behaviour is only :thin; if more than one type is configured, at least one must override :name
     :types {
-      ;; Optional, can override anything
+      ;; Optional, can override anything, will trigger building a thin capsule
       :thin {}
 
       ;; Optional, can override anything, will trigger building a fat capsule
@@ -64,7 +64,7 @@
           :runtime {
             :jdk-required true } }
 
-        ;; Either :fat-ecept or :thin-except must be specified
+        ;; Either :fat-except or :thin-except must be specified
         :fat-except [[org.clojure/clojure]] } ]
 
       ;; Optional, can override anything, shortcut for building a single capsule of type :fat-except Clojure's artifact
@@ -202,6 +202,7 @@
       :allow-snapshots false
 
       ;; Optional, corresponds to Repositories manifest entry
+      ; TODO test and support editing Leiningen-level ones
       :repositories [central]
 
       ;; Optional
