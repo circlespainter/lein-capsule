@@ -16,8 +16,15 @@
 
   ;;; For test
   :profiles {
+    ; TODO Support special capsule profile to be used only for capsule-building, similar to uberjar's
     :bla {
       :jvm-opts "-server" } }
+
+  ;;; Needed for executable jars as well as for capsules, if not present an artifact executable will be assumed
+  :main lein-capsule-test.core
+
+  ;;; Leinengen 3 will remove implicit AOT-compilation of :main
+  :aot [lein-capsule-test.core]
 
   ;;; Capsule plugin configuration section, optional
   :capsule {
@@ -94,17 +101,19 @@
         ;; Optional, corresponds 1:1 to Main-Class manifest entry, default is "Capsule"
         :main-class "Capsule"
 
-        ;; Optional, corresponds 1:1 to Extract-Capsule manifest entry, check https://github.com/puniverse/capsule#capsules-cache for defaults;
-        ;; If the value here is not meaningful for the type of capsule to be built, it will be overridden automatically
+        ;; Optional, corresponds 1:1 to Extract-Capsule manifest entry, check
+        ;; https://github.com/puniverse/capsule#capsules-cache for defaults.
+        ;;
+        ;; If the value here is not meaningful for the type of capsule to be built (only thin at present),
+        ;; it will be overridden automatically
         :extract-capsule false
 
-        ;; Optional, if missing it'll be Leiningen's :main unless one of the following two is specified
-        :clojure-ns main
+        ;; The main namespace will be Leiningen's :main; if missing the following sections will be tried
 
         ;; Optional, applicable only if application-ns nor Leiningen's main; if neither is present then
         ;; the next one must be
+        ; TODO test
         :scripts {
-          ; TODO test
           ;; Mandatory, corresponds 1:1 to Unix-Script manifest entry
           :unix ""
           ;; Mandatory, corresponds 1:1 to Windows-Script manifest entry

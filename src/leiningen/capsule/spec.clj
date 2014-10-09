@@ -19,50 +19,51 @@
     (org.eclipse.aether.repository RemoteRepository)
     (co.paralleluniverse.capsule.build Dependencies)))
 
+; TODO Find better way or check correctness
+(defn- java-mangle-ns [main-ns]
+  (.replace (name main-ns) "-" "_"))
+
 (defn- setup-boot [project & [mode-keyword]]
   "Adds manifest entries for the executable jar's entry point"
   (let [main-ns
-        (get-in project (cc/mode-aware-path project cc/path-execution-boot-clojure-ns mode-keyword)
-                (get-in project cc/path-main))
+          (get-in project cc/path-main)
         args
-        (.trim
-          (reduce
-            (fn [accum v]
-              (str accum " " v))
-            ""
-            (get-in project cc/path-execution-boot-args [])))]
+          (.trim
+            (reduce
+              (fn [accum v] (str accum " " v)) ""
+              (get-in project cc/path-execution-boot-args [])))]
     (if main-ns
       (->
         project
-        (cutils/add-to-manifest "Application-Class" "clojure.main" mode-keyword)
-        (cutils/add-to-manifest "Args" (.trim (str main-ns " " args)) mode-keyword))
+        (cutils/add-to-manifest "Application-Class" (java-mangle-ns main-ns) mode-keyword)
+        (cutils/add-to-manifest "Args" args mode-keyword))
       (let [project
-            (if (> (.length args) 0)
-              (cutils/add-to-manifest project "Args" args mode-keyword)
-              project)
+              (if (> (.length args) 0)
+                (cutils/add-to-manifest project "Args" args mode-keyword)
+                project)
             scripts
-            (get-in project (cc/mode-aware-path project cc/path-execution-boot-scriptsx mode-keyword))
+              (get-in project (cc/mode-aware-path project cc/path-execution-boot-scriptsx mode-keyword))
             artifact ; Default if unspecified is project artifact
-            (get-in project (cc/mode-aware-path project cc/path-execution-boot-artifact mode-keyword)
-                    [(symbol (:group project) (:name project)) (:version project)])]
+              (get-in project (cc/mode-aware-path project cc/path-execution-boot-artifact mode-keyword)
+                      [(symbol (:group project) (:name project)) (:version project)])]
         (cond
           scripts
-          (->
-            project
-            (cutils/add-to-manifest "Unix-Script" (:unix scripts) mode-keyword)
-            (cutils/add-to-manifest "Windows-Script" (:windows scripts) mode-keyword))
+            (->
+              project
+              (cutils/add-to-manifest "Unix-Script" (:unix scripts) mode-keyword)
+              (cutils/add-to-manifest "Windows-Script" (:windows scripts) mode-keyword))
           artifact
-          (->
-            project
-            (cutils/add-to-manifest
-              "Application"
-              (cutils/artifact-to-string artifact) mode-keyword))
+            (->
+              project
+              (cutils/add-to-manifest
+                "Application"
+                (cutils/artifact-to-string artifact) mode-keyword))
           :else
-          (->
-            project
-            (cutils/add-to-manifest
-              "Application"
-              (cutils/artifact-to-string artifact) mode-keyword))))))) ; This should never happen
+            (->
+              project
+              (cutils/add-to-manifest
+                "Application"
+                (cutils/artifact-to-string artifact) mode-keyword))))))) ; This should never happen
 
 (defn- manifest-put-runtime [project & [mode-keyword]]
   "Adds manifest entries implementing lein-capsule's runtime spec section"
@@ -172,7 +173,8 @@
           (manifest-put-maven mode-keyword)
           (maybe-manifest-put-modes) ; Needs to be the last step as the default mode can override anything
           (update-in (cc/capsule-manifest-path project mode-keyword)
-                     ; priority to user manifest
+                     ; priority to user manifest, allowing "emergency" post-processing capsule manifest overrides
+                     ; from Leiningen
                      #(merge % user-manifest)))]
     (if mode-keyword
       project

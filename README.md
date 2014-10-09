@@ -1,6 +1,12 @@
-# lein-capsule (UNIMPLEMENTED, IN PROGRESS)
+# lein-capsule
 
-A Leiningen plugin for Parallel Universe's Capsule
+A [Leiningen](https://github.com/technomancy/leiningen) plugin for
+[Parallel Universe](http://www.paralleluniverse.co)'s
+[Capsule](https://github.com/puniverse/capsule).
+
+Please report any issues. Very first release, partially tested
+(see [lein-capsule-test/project.clj](../master/lein-capsule-test/project.clj)),
+so expect some bumpiness and spec format changes until major release 1.0.
 
 ## Usage
 
@@ -14,7 +20,9 @@ Use this for project-level plugins:
 
 Put `[lein-capsule "0.1.0-SNAPSHOT"]` into the `:plugins` vector of your project.clj.
 
-TODO: and add an example usage that actually makes sense:
+The plugin is configured through a specific project section only and
+currently has no command line arguments. A complete, commented example
+can be found in [lein-capsule-test/project.clj](../master/lein-capsule-test/project.clj).
 
     $ lein capsule
 
