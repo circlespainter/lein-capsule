@@ -17,11 +17,11 @@
   "Creates specified capsules for the project"
   [project & args]
 
-  (let [default-profile (cutils/get-capsule-default-profile project)
+  (let [default-mode (cutils/get-capsule-default-mode project)
         project (cspec/validate-and-normalize project)
         jar-files (jar/jar project)]
     (doseq [[capsule-type-name v] (cutils/get-capsule-types project)]
-      (let [project (cutils/get-project-without-default-profile project)
-            project (project/merge-profiles project [{:capsule default-profile} {:capsule v}])
+      (let [project (cutils/get-project-without-default-mode project)
+            project (project/merge-profiles project [{:capsule default-mode} {:capsule v}])
             project (cspec/capsulize project)]
         (cbuild/build-capsule jar-files project capsule-type-name v)))))

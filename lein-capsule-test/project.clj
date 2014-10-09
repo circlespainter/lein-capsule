@@ -30,6 +30,7 @@
     :min-plugin-version "0.1.0-SNAPSHOT"
 
   ;;; Optional, corresponds 1:1 to Log-Level manifest entry
+  ; TODO test
     :log-level "info"
 
   ;;; Optional, defaults to <jarbasename>-<capsuletype>-capsule.jar, corresponds 1:1 to Log-Level manifest entry
@@ -75,17 +76,16 @@
       :version "0.1.0-SNAPSHOT" }
 
   ;;; Optional, capsule modes, each of them can override anything except types and application settings
-    :profiles {
-      :my-profile-1 {
-        ;; Optional, this profile settings will override
-        ;; top-level settings, defaults to false
+    :modes {
+      :my-mode-1 {
+        ;; Optional, this mode's settings will override top-level settings, defaults to false
         :default true
 
         :execution {
           :boot {
             :clojure-ns lein-capsule-test.core } } }
 
-      :my-profile-2 {} }
+      :my-mode-2 {} }
 
   ;;; Optional
     :execution {
@@ -104,6 +104,7 @@
         ;; Optional, applicable only if application-ns nor Leiningen's main; if neither is present then
         ;; the next one must be
         :scripts {
+          ; TODO test
           ;; Mandatory, corresponds 1:1 to Unix-Script manifest entry
           :unix ""
           ;; Mandatory, corresponds 1:1 to Windows-Script manifest entry
@@ -111,12 +112,15 @@
 
         ;; Optional, applicable only if none of the above is; in that case, if missing, the project's
         ;; complete artifact ID will be used; corrisponds 1:1 to Application manifest entry
+        ; TODO test
         :artifact [my/artifact "1.0.0"]
 
+        ; TODO test
         ;; Optional, program arguments, defaults to none
         :args [] }
 
       ;; Optional, check https://github.com/puniverse/capsule#selecting-the-java-runtime for defaults
+      ; TODO test
       :runtime {
         ;; Optional, corrisponds 1:1 to Java-Version manifest entry
         :java-version ""
@@ -128,6 +132,7 @@
         :jdk-required false
 
         ;; Optional, corrisponds 1:1 to JVM-Args manifest entry
+        ; TODO Support diff'ing from Leiningen-level ones
         :jvm-args []
 
         ;; Optional, corrisponds 1:1 to System-Properties manifest entry
@@ -137,6 +142,7 @@
         :environment-variables {}
 
         ;; Optional, corresponds 1:1 to Java-Agents manifest entry
+        ; TODO Support diff'ing from Leiningen-level ones
         :agents [
           ;; Optional
           [:embedded {
@@ -183,18 +189,21 @@
   ;;; Optional, check https://github.com/puniverse/capsule#maven-dependencies for defaults
     :maven-dependencies {
       ;; Optional, corresponds to Allow-Snapshots manifest entry
+      ; TODO test
       :allow-snapshots false
 
       ;; Optional, corresponds to Repositories manifest entry
       :repositories [central]
 
       ;; Optional
+      ; TODO test
       :artifacts {
         ;; Optional
+        ; TODO support replacing Leiningen-level ones
         :jvm {
           ;; Optional, array of Leinigen coordinates to remove
           :remove []
-          ;; Optional, array of Leinigen dependencies
+          ;; Optional, array of Leinigen dependencies to add
           :add [] }
         ;; Optional
         :native {

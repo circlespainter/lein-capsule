@@ -1,5 +1,7 @@
 (ns ^{ :author "circlespainter" :internal true } leiningen.capsule.consts)
 
+(def ^:internal capsule-version "0.10.0-SNAPSHOT")
+
 (def ^:internal clojars-repo-url "http://clojars.org/repo")
 
 ;; TODO Restore it to :manifest and maybe try reusing some uberjar logic when https://github.com/technomancy/leiningen/pull/1700 is merged
@@ -44,22 +46,22 @@
 (def ^:internal path-maven-dependencies-artifacts-native-linux [:maven-dependencies :artifacts :native :linux])
 (def ^:internal path-maven-dependencies-artifacts-native-windows [:maven-dependencies :artifacts :native :windows])
 
-(def ^:internal path-profiles [:capsule :profiles])
+(def ^:internal path-modes [:capsule :modes])
 (def ^:internal path-types [:capsule :types])
 
-(defn- default-profile [project & [profile-keyword]]
-  "Determines if the profile is a default one"
-  (and profile-keyword (not (get-in project [:capsule :profiles profile-keyword :default]))))
+(defn- non-default-mode [project & [mode-keyword]]
+  "Determines if the mode is a default one"
+  (and mode-keyword (not (get-in project (concat path-modes [mode-keyword :default])))))
 
-(defn ^:internal profile-aware-path [project path & [profile-keyword]]
-  "Returns the correct path in the project's capsule specification sub-map (source) based on path, profile name and
+(defn ^:internal mode-aware-path [project path & [mode-keyword]]
+  "Returns the correct path in the project's capsule specification sub-map (source) based on path, mode name and
   default setting"
-  (if (default-profile project profile-keyword)
-    (concat [:capsule :profiles profile-keyword] path)
+  (if (non-default-mode project mode-keyword)
+    (concat (concat path-modes [mode-keyword]) path)
     (cons :capsule path)))
 
-(defn ^:internal capsule-manifest-path [project & [profile-keyword]]
-  "Returns the correct path in the project's manifest sub-map (target) based on profile name and default setting"
-  (if (default-profile project profile-keyword)
-    [kwd-capsule-manifest profile-keyword]
+(defn ^:internal capsule-manifest-path [project & [mode-keyword]]
+  "Returns the correct path in the project's manifest sub-map (target) based on mode name and default setting"
+  (if (non-default-mode project mode-keyword)
+    [kwd-capsule-manifest mode-keyword]
     [kwd-capsule-manifest]))
