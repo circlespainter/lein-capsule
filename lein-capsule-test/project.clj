@@ -1,7 +1,7 @@
 (defproject lein-capsule-test "0.1.0-SNAPSHOT"
-  :description "FIXME: write description"
+  :description "My lein-capsule test"
 
-  :url "http://example.com/FIXME"
+  :url "http://example.com/whatever"
 
   :license {
     :name "Eclipse Public License"

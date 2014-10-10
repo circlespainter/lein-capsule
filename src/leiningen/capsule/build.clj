@@ -123,6 +123,7 @@
         (add-mf "Native-Dependencies-Win" native-win))))
 
 (defn- get-dep-files [project deps]
+  "Given a seq of Leiningen-style dependencies, retrieves files for the whole transitive dependency graph"
   (aether/dependency-files
     (aether/resolve-dependencies
       :coordinates deps
@@ -178,7 +179,7 @@
 (defn- build-mixed [base-type jar-files project spec & [excepts]]
   "Builds a mixed capsule"
   ; Will add every dependency to the manifest
-  ; TODO Cleanup, empty bindings for side-effects are ugly
+  ; TODO De-uglify and cleanup, empty bindings for side-effects are smelly
   (let [capsule (Jar.)
         _ (.setOutputStream capsule (capsule-output-stream project spec))
         project
@@ -233,6 +234,7 @@
   "Builds a fat capsule excluding clojure"
   (build-mixed :fat jar-files project spec '[[org.clojure/clojure]]))
 
+; TODO Case for multi?
 (defn- build-mixed-spec [jar-files project spec]
   "Builds a mixed capsule"
   (cond
@@ -241,6 +243,7 @@
     :else
       (throw (RuntimeException. "Unexpected mixed capsule type specified, use either :fat-except or :thin-except"))))
 
+; TODO Case for multi?
 (defn ^:internal build-capsule [jar-files project capsule-type-name capsule-type-spec]
   "Builds the capsule(s) of a given type using the pre-processed project map"
   ((case capsule-type-name

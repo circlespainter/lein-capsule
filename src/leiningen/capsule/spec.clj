@@ -17,6 +17,7 @@
 
 ; TODO Find logic to reuse or at least check correctness
 (defn- java-mangle-ns [main-ns]
+  "(Hopefully) translates Clojure namespace names into Java package names"
   (.replace (name main-ns) "-" "_"))
 
 (defn- setup-boot [project & [mode-keyword]]

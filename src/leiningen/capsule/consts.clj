@@ -1,12 +1,17 @@
-(ns ^{ :author "circlespainter" :internal true } leiningen.capsule.consts)
+; TODO Review for compliance with https://github.com/bbatsov/clojure-style-guide
+
+(ns ^{ :author "circlespainter" :internal true } leiningen.capsule.consts
+  "Useful constants and quasi-constants")
 
 (def ^:internal capsule-version "0.10.0-SNAPSHOT")
 
 (def ^:internal clojars-repo-url "http://clojars.org/repo")
 
-;; TODO Restore it to :manifest and maybe try reusing some uberjar logic when https://github.com/technomancy/leiningen/pull/1700 is merged
+; TODO Restore it to :manifest and maybe try reusing some uberjar logic when https://github.com/technomancy/leiningen/pull/1700 is merged
 ;; In the meanwhile going on with alternative impl.
 (def ^:internal kwd-capsule-manifest :capsule-manifest)
+
+; TODO Factor out common parts, use more sensible names (e.g. some paths are absolute, some relative)
 
 (def ^:internal path-main [:main])
 

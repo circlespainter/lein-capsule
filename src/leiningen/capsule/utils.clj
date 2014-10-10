@@ -1,3 +1,5 @@
+; TODO Review for compliance with https://github.com/bbatsov/clojure-style-guide
+
 (ns ^{ :author "circlespainter" :internal true } leiningen.capsule.utils
   "Various capsule-building utilities"
   (:require [leiningen.capsule.consts :as cc]))
@@ -126,6 +128,7 @@
 
 (defn ^:internal lein-agents-to-capsule-artifact-agents [project]
   "Builds a collection of capsule-spec-format artifact agents from project's"
+  ; TODO Bootclasspath agent artifacts not supported by Capsule AFAIK, but check
   (map #({:artifact %}) (filter #(not (:bootclasspath %)) (:java-agents project))))
 
 (defn ^:internal has-artifact-agents [project]
@@ -134,7 +137,6 @@
     (not-every? empty?
                 (cons
                   (diff
-                    ; TODO Bootclasspath agent artifacts not supported by Capsule AFAIK, but check
                     agents
                     (get-in project (cons :capsule cc/path-runtime-agents)))
                   (map
