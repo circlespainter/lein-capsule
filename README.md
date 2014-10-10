@@ -78,6 +78,7 @@ on project-level configuration and Capsule defaults themselves but they can be a
 - Support ["Really Executable" Capsules](https://github.com/puniverse/capsule#really-executable-capsules)
 - Reference docs, look into [Codox](https://github.com/weavejester/codox) and
 [Marginalia](https://github.com/gdeer81/marginalia)
+- Consider using [core.typed](https://github.com/clojure/core.typed)
 - Spot, reshape and publish generally useful logic (right now everything except main plugin's function is either
 private or marked as `:internal`) 
 - More examples
