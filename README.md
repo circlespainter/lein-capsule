@@ -9,7 +9,7 @@ Please report any issues. Very first release, partially tested
 (see [lein-capsule-test/project.clj](../master/lein-capsule-test/project.clj)),
 so expect some bumpiness and spec format changes until major release 1.0.
 
-## First steps
+## Getting started
 
 Use this for user-level plugins:
 
@@ -76,8 +76,8 @@ on project-level configuration and Capsule defaults themselves but they can be a
 - More manual tests but most importantly a comprehensive (eventually) testsuite
 - Possibly refactor configuration to make it smarter, shorter and more readable; especially remove repetitions
 - Support ["Really Executable" Capsules](https://github.com/puniverse/capsule#really-executable-capsules)
-- Reference docs, look into [Codox](https://github.com/weavejester/codox) and
-[Marginalia](https://github.com/gdeer81/marginalia)
+- Reference docs, look into [Codox](https://github.com/weavejester/codox),
+[Marginalia](https://github.com/gdeer81/marginalia) and [lein-html5-docs](https://github.com/tsdh/lein-html5-docs)
 - Consider using [core.typed](https://github.com/clojure/core.typed)
 - Spot, reshape and publish generally useful logic (right now everything except main plugin's function is either
 private or marked as `:internal`) 

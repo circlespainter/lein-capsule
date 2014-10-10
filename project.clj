@@ -13,9 +13,13 @@
 
   :min-lein-version "2.4.3"
 
-  :plugins [[lein-midje "3.1.1"]
-            [codox "0.6.4"]
-            [lein-marginalia "0.7.1"]]
+  :plugins [
+             ; [lein-pprint "1.1.1"]
+             ; [lein-marginalia "0.8.0"]
+             ; [lein-html5-docs "2.2.0"]
+             ; [codox "0.8.10"]
+             ; [lein-midje "3.1.3"]
+           ]
 
 	:dependencies [[org.eclipse.aether/aether-api "1.0.0.v20140518"]
                  [co.paralleluniverse/capsule "0.10.0-SNAPSHOT"]

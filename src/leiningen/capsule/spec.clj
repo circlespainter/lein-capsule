@@ -1,4 +1,5 @@
 ; lein-capsule: a Leiningen plugin for Parallel Universe's Capsule.
+;
 ; Copyright (C) 2014 Fabio Tudone. All rights reserved.
 ;
 ; This program and the accompanying materials are dual-licensed under
