@@ -12,7 +12,8 @@ so expect some bumpiness and spec format changes until major release 1.0.
 
 Full reference: [lein-capsule-test/project.clj](../master/lein-capsule-test/project.clj)
 
-- Common `:capsule` section supporting (hopefully) every capsule manifest entry
+- Common `:capsule` section supporting (hopefully) every capsule manifest entry. Sensible defaults are based
+on project-level configuration and Capsule defaults themselves but they can be adjusted and overridden.
 - Main namespace, dependencies and repositories are inherited from project's configuration but can be adjusted
   for capsule builds
 - Support for building many capsules of different `:types`, currently `:fat`, `:thin`, `:fat-except-clojure`,
