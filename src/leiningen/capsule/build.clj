@@ -34,14 +34,6 @@
   "Extracts Capsule-spec dependencies from a specific path location"
   (get-in project (cc/mode-aware-path project path mode-keyword)))
 
-(defn- jvm-capsule-removed-deps [project & [mode-keyword]]
-  "Extracts Capsule-spec removed dependencies"
-  (capsule-deps project cc/path-maven-dependencies-artifacts-jvm-remove mode-keyword))
-
-(defn- jvm-capsule-added-deps [project & [mode-keyword]]
-  "Extracts Capsule-spec added dependencies"
-  (capsule-deps project cc/path-maven-dependencies-artifacts-jvm-add mode-keyword))
-
 (defn- native-mac-capsule-deps [project & [mode-keyword]]
   "Extracts Capsule-spec Mac native dependencies"
   (capsule-deps project cc/path-maven-dependencies-artifacts-native-mac mode-keyword))
@@ -56,12 +48,9 @@
 
 (defn- jvm-computed-capsule-deps [project & [mode-keyword]]
   "Computes JVM dependencies based on both Leiningen and Capsule-spec"
-  (concat
-    (jvm-capsule-added-deps project mode-keyword)
-    (vec
-      (clojure.set/difference
-        (set (jvm-lein-deps project))
-        (set (jvm-capsule-removed-deps project mode-keyword))))))
+  (cutils/diff
+    (jvm-lein-deps project)
+    (cutils/diff-section project cc/path-maven-dependencies-artifacts-jvm mode-keyword)))
 
 (defn- dependency-matches-exception [dep dep-exc]
   "Tells if the dependecies match"
@@ -103,15 +92,16 @@
 
 (defn- manifest-put-mvn-repos [project & [mode-keyword]]
   "Adds repositories to the Capsule manifest"
-  (cutils/add-to-manifest
-    project
-    "Repositories"
-    (cstr/join
-      " "
-      (map
-        make-aether-repo
-        (lein-repos project)))
-    mode-keyword))
+  (let [patched-repos
+          (cons cc/clojars-repo-url
+                (cutils/diff
+                  (map make-aether-repo (lein-repos project))
+                  (cutils/diff-section project cc/path-maven-dependencies-repositories mode-keyword)))]
+    (cutils/add-to-manifest
+      project
+      "Repositories"
+      (cstr/join " " patched-repos)
+      mode-keyword)))
 
 (declare retrieve-and-insert-mvn-deps)
 
@@ -211,10 +201,16 @@
             project
             (get-in project cc/path-modes))]
 
-    (if (or (not= base-type :fat) (seq excepts))
+    (if (or
+          (not= base-type :fat)
+          (seq excepts)
+          (seq (cutils/execution-boot-artifacts project))
+          (cutils/has-artifact-agents project))
+      ; Extract full jar to capsule, including the dependency manager
       (extract-jar-contents-to-capsule
         {:capsule-jar (.getAbsolutePath (first (get-dep-files project [['co.paralleluniverse/capsule cc/capsule-version]])))}
         capsule)
+      ; Else the Capsule class will be enough
       (.addClass capsule (Class/forName "Capsule")))
     (if (and (= base-type :thin) (not (seq excepts)))
       (extract-jar-contents-to-capsule jar-files capsule)

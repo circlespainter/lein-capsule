@@ -14,9 +14,12 @@
   :dependencies [
     [org.clojure/clojure "1.6.0"] ]
 
-  ;;; For test
+  ; TODO Test more
+  :jvm-opts ["-client"]
+
+  ;;; TODO Test with profiles
   :profiles {
-    ; TODO Support special capsule profile to be used only for capsule-building, similar to uberjar's
+    ; TODO? Support special capsule profile to be used only for capsule-building, similar to uberjar's
     :bla {
       :jvm-opts "-server" } }
 
@@ -29,15 +32,13 @@
   ;;; Capsule plugin configuration section, optional
   :capsule {
 
+    ; TODO Add and implement plugin version check
+
   ;;; Optional, defaults to "capsules" in project target dir, can't be overridden
     :output-dir "my-capsules"
 
-  ;;; Optional
-    ; TODO Implement plugin version check
-    :min-plugin-version "0.1.0-SNAPSHOT"
-
   ;;; Optional, corresponds 1:1 to Log-Level manifest entry
-  ; TODO test
+  ; TODO Test more
     :log-level "info"
 
   ;;; Optional, defaults to <jarbasename>-<capsuletype>-capsule.jar, corresponds 1:1 to Log-Level manifest entry
@@ -92,7 +93,11 @@
           :boot {
             :clojure-ns lein-capsule-test.core } } }
 
-      :my-mode-2 {} }
+      :my-mode-2 { :execution { :runtime { :jvm-args { :add ["-server"] } } } }
+
+      :my-mode-3 {}
+
+      :my-mode-4 { :log-level "debug" } }
 
   ;;; Optional
     :execution {
@@ -110,9 +115,8 @@
 
         ;; The main namespace will be Leiningen's :main; if missing the following sections will be tried
 
-        ;; Optional, applicable only if application-ns nor Leiningen's main; if neither is present then
-        ;; the next one must be
-        ; TODO test
+        ;; Optional, applicable only if Leiningen's main is missing
+        ; TODO Test
         :scripts {
           ;; Mandatory, corresponds 1:1 to Unix-Script manifest entry
           :unix ""
@@ -121,15 +125,15 @@
 
         ;; Optional, applicable only if none of the above is; in that case, if missing, the project's
         ;; complete artifact ID will be used; corrisponds 1:1 to Application manifest entry
-        ; TODO test
+        ; TODO Test
         :artifact [my/artifact "1.0.0"]
 
-        ; TODO test
+        ; TODO Test
         ;; Optional, program arguments, defaults to none
         :args [] }
 
       ;; Optional, check https://github.com/puniverse/capsule#selecting-the-java-runtime for defaults
-      ; TODO test
+      ; TODO Test more
       :runtime {
         ;; Optional, corrisponds 1:1 to Java-Version manifest entry
         :java-version ""
@@ -140,9 +144,13 @@
         ;; Optional, corrisponds 1:1 to JDK-Required manifest entry
         :jdk-required false
 
-        ;; Optional, corrisponds 1:1 to JVM-Args manifest entry
-        ; TODO Support diff'ing from Leiningen-level ones
-        :jvm-args []
+        ;; Optional, corrisponds 1:1 to JVM-Args manifest entry. A vector will override project-level ones,
+        ;; while a map with add/remove keys will change them.
+        ; TODO Test more
+        :jvm-args {
+          :add ["-debug"]
+          :remove []
+        }
 
         ;; Optional, corrisponds 1:1 to System-Properties manifest entry
         :system-properties {}
@@ -150,20 +158,23 @@
         ;; Optional, corrisponds 1:1 to Environment-Variables manifest entry
         :environment-variables {}
 
-        ;; Optional, corresponds 1:1 to Java-Agents manifest entry
-        ; TODO Support diff'ing from Leiningen-level ones
+        ;; Optional, corresponds 1:1 to Java-Agents manifest entry. A vector will override project-level ones,
+        ;; while a map with add/remove keys will change them.
+        ; TODO Test more
         :agents [
-          ;; Optional
-          [:embedded {
+          ;; Optional, format similar to Leiningen's
+          ; { :embedded [
             ;; Mandatory
-            :jar ""
+          ;   "myjar.jar"
             ;; Optional
-            :params [] } ]
-          [:artifact {
+          ;   :options "" ] }
+          ;; Optional, same format as Leiningen's
+          ; { :artifact [
             ;; Mandatory
-            :id ""
+          ;   group/sym "1.0"
             ;; Optional
-            :params [] } ] ]
+          ;   :options "" ] }
+          ]
 
         :paths {
           ;; Optional, corresponds 1:1 to App-Class-Path manifest entry
@@ -198,22 +209,24 @@
   ;;; Optional, check https://github.com/puniverse/capsule#maven-dependencies for defaults
     :maven-dependencies {
       ;; Optional, corresponds to Allow-Snapshots manifest entry
-      ; TODO test
+      ; TODO Test more
       :allow-snapshots false
 
-      ;; Optional, corresponds to Repositories manifest entry
-      ; TODO test and support editing Leiningen-level ones
+      ;; Optional, corresponds to Repositories manifest entry. A vector will override project-level ones,
+      ;; while a map with add/remove keys will change them. Capsule-specific symbols are allowed here, as well
+      ;; as plain URL strings.
+      ; TODO Test more
       :repositories [central]
 
       ;; Optional
-      ; TODO test
+      ; TODO Test more
       :artifacts {
-        ;; Optional
-        ; TODO support replacing Leiningen-level ones
+        ;; Optional. A vector will override project-level ones, while a map with add/remove keys will change them.
+        ; TODO Test more
         :jvm {
           ;; Optional, array of Leinigen coordinates to remove
           :remove []
-          ;; Optional, array of Leinigen dependencies to add
+          ;; Optional, array of Leinigen coordinates to add
           :add [] }
         ;; Optional
         :native {

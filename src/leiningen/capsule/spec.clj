@@ -15,7 +15,7 @@
     [leiningen.capsule.consts :as cc]
     [leiningen.capsule.build :as cbuild]))
 
-; TODO Find better way or check correctness
+; TODO Find logic to reuse or at least check correctness
 (defn- java-mangle-ns [main-ns]
   (.replace (name main-ns) "-" "_"))
 
@@ -61,30 +61,60 @@
                 "Application"
                 (cutils/artifact-to-string artifact) mode-keyword))))))) ; This should never happen
 
+(defn- add-jvm-args [project & [mode-keyword]]
+  "Adds a 'JVM-args' capsule manifest entry based on project-level :jvm-opts and (possibly) capsule-level overrides"
+  (let [patched-jvm-args
+          (cutils/diff
+            (:jvm-opts project)
+            (cutils/diff-section project cc/path-runtime-jvm-args mode-keyword))]
+    (cutils/add-to-manifest project "JVM-Args" (cstr/join " " patched-jvm-args) mode-keyword)))
+
+(defn- add-java-agents [project & [mode-keyword]]
+  "Adds a 'Java-Agents' capsule manifest entry based on project-level :jvm-opts and (possibly) capsule-level overrides"
+  (let [patched-java-agents
+          (cutils/diff
+            ; TODO Bootclasspath agent artifacts not supported by Capsule AFAIK, but check
+            (cutils/lein-agents-to-capsule-artifact-agents project)
+            (cutils/diff-section project cc/path-runtime-agents mode-keyword))]
+    (cutils/add-to-manifest project "Java-Agents"
+                            ; TODO simplify / de-uglify
+                            (reduce
+                              (fn [accum m]
+                                (let [embedded (:embedded m)
+                                      artifact (:artifact m)]
+                                  (str accum (if (seq accum) " " "")
+                                    (cond
+                                      (coll? (seq embedded))
+                                        (str
+                                          (first embedded)
+                                          (if (and (= (count embedded) 3) (seq (nth embedded 2)))
+                                            (str "=" (nth embedded 2))
+                                            ""))
+                                      (and (coll? (seq artifact)) (> (count artifact) 1))
+                                        (str
+                                          (cutils/artifact-to-string artifact)
+                                          (if (and (= (count artifact) 4) (seq (nth artifact 3)))
+                                            (str "=" (nth artifact 3))
+                                            ""))
+                                      :else
+                                        (do (main/warn "FATAL: ill-formed java agent" m) (main/exit))))))
+                              "" patched-java-agents)
+                            mode-keyword)))
+
 (defn- manifest-put-runtime [project & [mode-keyword]]
   "Adds manifest entries implementing lein-capsule's runtime spec section"
   (->
     project
+    (add-jvm-args mode-keyword)
+    (add-java-agents mode-keyword)
     (cutils/add-to-manifest-if-mode-path-as-string cc/path-runtime-java-version "Java-Version" mode-keyword)
     (cutils/add-to-manifest-if-mode-path-as-string cc/path-runtime-min-java-version "Min-Java-Version"
                                                    mode-keyword)
     (cutils/add-to-manifest-if-mode-path-as-string cc/path-runtime-min-update-version "Min-Update-Version"
                                                    mode-keyword)
     (cutils/add-to-manifest-if-mode-path-as-string cc/path-runtime-jdk-required "JDK-Required" mode-keyword)
-    (cutils/add-to-manifest-if-mode-path cc/path-runtime-jvm-args "JVM-Args" #(cstr/join " " %) mode-keyword)
     (cutils/add-to-manifest-if-mode-path cc/path-runtime-system-properties "Environment-Variables"
                                             #(reduce-kv (fn [accum k v] (str accum " " k "=" v)) "" %) mode-keyword)
-    (cutils/add-to-manifest-if-mode-path cc/path-runtime-agents "Java-Agents"
-                                            #(reduce
-                                              (fn [accum [k v]]
-                                                (str accum " "
-                                                     (case k
-                                                       :embedded (str (:jar v) "=" (:params v))
-                                                       :artifact
-                                                       (str (cutils/artifact-to-string (:id v)) "=" (:params v))
-                                                       :else "")))
-                                              "" %)
-                                            mode-keyword)
     (cutils/add-to-manifest-if-mode-path
       cc/path-runtime-app-class-path "App-Class-Path" #(cstr/join " " %) mode-keyword)
     (cutils/add-to-manifest-if-mode-path
@@ -153,8 +183,7 @@
   (->
     project
     (cutils/add-to-manifest-if-mode-path-as-string
-      cc/path-maven-dependencies-allow-snapshots "Allow-Snapshots" mode-keyword)
-    (update-in cc/path-maven-dependencies-repositories #(cons cc/clojars-repo-url %))))
+      cc/path-maven-dependencies-allow-snapshots "Allow-Snapshots" mode-keyword)))
 
 (defn ^:internal capsulize [project & [mode-keyword]]
   "Augments the manifest inserting capsule-related entries"
@@ -249,7 +278,7 @@
 (defn- validate-capsule-modes [project]
   "Validates all defined capsule modes"
   (let [modes (get-in project cc/path-modes)
-        default-modes-count (count (filter nil? (map #(:default %) (vals modes))))]
+        default-modes-count (count (filter identity (map #(:default %) (vals modes))))]
     (cond
       (> default-modes-count 1)
         (do

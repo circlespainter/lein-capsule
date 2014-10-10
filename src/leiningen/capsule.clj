@@ -23,6 +23,7 @@
     (doseq [[capsule-type-name v] (cutils/get-capsule-types project)]
       (let [project (cutils/get-project-without-default-mode project)
             ; TODO It seems to work but check it is the correct way to merge parts
-            project (project/merge-profiles project [{:capsule default-mode} {:capsule v}])
+            ; Merge overrides before processing: default mode and current build configuration (type)
+            project (project/merge-profiles project [(if default-mode {:capsule default-mode} {}) {:capsule v}])
             project (cspec/capsulize project)]
         (cbuild/build-capsule jar-files project capsule-type-name v)))))

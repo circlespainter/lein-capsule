@@ -47,9 +47,6 @@ From project root:
 ## (Some) TODOs
 
 - More tests and a comprehensive testsuite
-- Support for inheriting and adjusting project-level JVM arguments and agents for capsule builds
-- Support for adjusting project-level repositories for capsule builds
-- Support for completely replacing project-level dependencies for capsule builds
 - Refactor configuration to make it smarter, shorter and more readable; especially remove repetitions
 - Support ["Really Executable" Capsules](https://github.com/puniverse/capsule#really-executable-capsules)
 - Reference docs, look into [Codox](https://github.com/weavejester/codox) and
