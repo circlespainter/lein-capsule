@@ -1,0 +1,38 @@
+This product contains modified source code from https://github.com/ryfow/pomegranate/tree/upgrade-aether, relevant
+rights and licenses apply
+
+This product depends on Aether, a library for working with artifact repositories
+
+    Copyright (c) 2010, 2014 Sonatype, Inc.
+    * LICENSE: Eclipse Public License v1.0 (http://www.eclipse.org/legal/epl-v10.html)
+    * HOMEPAGE: http://www.eclipse.org/aether/
+
+This product depends on Capsule, a dead-easy deployment package for standalone JVM applications
+
+    Copyright (c) 2014, Parallel Universe Software Co. and Contributors. All rights reserved.
+    * LICENSE: Eclipse Public License v1.0 (http://www.eclipse.org/legal/epl-v10.html)
+    * HOMEPAGE: https://github.com/puniverse/capsule
+
+This product depends on Leiningen, which is for automating Clojure projects without setting your hair on fire
+
+    Copyright (c) 2009-2014 Phil Hagelberg and contributors.
+    * LICENSE: Eclipse Public License v1.0 (http://www.eclipse.org/legal/epl-v10.html)
+    * HOMEPAGE: http://leiningen.org
+
+This product depends on Clojure, a Lisp dialect that targets the Java Virtual Machine (and the CLR, and JavaScript)
+
+    Copyright (c) Rich Hickey. All rights reserved.
+    * LICENSE: Eclipse Public License v1.0 (http://opensource.org/licenses/eclipse-1.0.php)
+    * HOMEPAGE: http://clojure.org
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE
+LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+POSSIBILITY OF SUCH DAMAGE.

@@ -1,4 +1,5 @@
-# lein-capsule
+# *lein-capsule*<br/>A [Leiningen](https://github.com/technomancy/leiningen) plugin for [Parallel Universe](http://www.paralleluniverse.co)'s [Capsule](https://github.com/puniverse/capsule).
+[![Dependency Status](https://www.versioneye.com/user/projects/54379f97b2a9c5aed60000d3/badge.svg?style=flat)](https://www.versioneye.com/user/projects/54379f97b2a9c5aed60000d3) [![Version](http://img.shields.io/badge/version-0.1.0-SNAPSHOT-blue.svg?style=flat)](https://github.com/circlespainter/lein-capsule) [![License](http://img.shields.io/badge/license-EPL-blue.svg?style=flat)](https://www.eclipse.org/legal/epl-v10.html) [![License](http://img.shields.io/badge/license-LGPL-blue.svg?style=flat)](https://www.gnu.org/licenses/lgpl.html)
 
 A [Leiningen](https://github.com/technomancy/leiningen) plugin for
 [Parallel Universe](http://www.paralleluniverse.co)'s
@@ -72,7 +73,7 @@ on project-level configuration and Capsule defaults themselves but they can be a
 
 ## (Some) TODOs
 
-- More tests and a comprehensive testsuite
+- More tests, a comprehensive testsuite and continuous integration
 - Possibly refactor configuration to make it smarter, shorter and more readable; especially remove repetitions
 - Support ["Really Executable" Capsules](https://github.com/puniverse/capsule#really-executable-capsules)
 - Reference docs, look into [Codox](https://github.com/weavejester/codox) and

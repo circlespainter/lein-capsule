@@ -1,5 +1,6 @@
-;; Partially copied from https://github.com/ryfow/pomegranate (relevant rights and licenses apply)
-;; TODO Remove when https://github.com/cemerick/pomegranate/pull/59 is merged
+; Partially copied from https://github.com/ryfow/pomegranate (relevant rights and licenses apply)
+
+; TODO Remove when https://github.com/cemerick/pomegranate/pull/59 is merged
 
 (ns leiningen.capsule.aether
   (:refer-clojure :exclude  [type proxy])
