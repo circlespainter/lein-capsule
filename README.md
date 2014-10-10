@@ -1,5 +1,5 @@
 # *lein-capsule*<br/>A [Leiningen](https://github.com/technomancy/leiningen) plugin for [Parallel Universe](http://www.paralleluniverse.co)'s [Capsule](https://github.com/puniverse/capsule).
-[![Dependency Status](https://www.versioneye.com/user/projects/54379f97b2a9c5aed60000d3/badge.svg?style=flat)](https://www.versioneye.com/user/projects/54379f97b2a9c5aed60000d3) [![Version](http://img.shields.io/badge/version-0.1.0-SNAPSHOT-blue.svg?style=flat)](https://github.com/circlespainter/lein-capsule) [![License](http://img.shields.io/badge/license-EPL-blue.svg?style=flat)](https://www.eclipse.org/legal/epl-v10.html) [![License](http://img.shields.io/badge/license-LGPL-blue.svg?style=flat)](https://www.gnu.org/licenses/lgpl.html)
+[![Dependency Status](https://www.versioneye.com/user/projects/54379f97b2a9c5aed60000d3/badge.svg?style=flat)](https://www.versioneye.com/user/projects/54379f97b2a9c5aed60000d3) [![Version](http://img.shields.io/badge/version-0.1.0--SNAPSHOT-red.svg?style=flat)](https://github.com/circlespainter/lein-capsule) [![License](http://img.shields.io/badge/license-EPL-blue.svg?style=flat)](https://www.eclipse.org/legal/epl-v10.html) [![License](http://img.shields.io/badge/license-LGPL-blue.svg?style=flat)](https://www.gnu.org/licenses/lgpl.html)
 
 A [Leiningen](https://github.com/technomancy/leiningen) plugin for
 [Parallel Universe](http://www.paralleluniverse.co)'s
@@ -86,7 +86,16 @@ private or marked as `:internal`)
 
 ## License
 
+lein-capsule is free software published under the following license:
+
+```
 Copyright © 2014 Fabio Tudone
 
-Distributed under the Eclipse Public License either version 1.0 or (at
-your option) any later version.
+This program and the accompanying materials are dual-licensed under
+either the terms of the Eclipse Public License v1.0 as published by
+the Eclipse Foundation
+
+  or (per the licensee's choosing)
+
+under the terms of the GNU Lesser General Public License version 3.0
+as published by the Free Software Foundation.
