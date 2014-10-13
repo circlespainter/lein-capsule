@@ -79,6 +79,7 @@ on project-level configuration and Capsule defaults themselves but they can be a
 - Reference docs, look into [Codox](https://github.com/weavejester/codox),
 [Marginalia](https://github.com/gdeer81/marginalia) and [lein-html5-docs](https://github.com/tsdh/lein-html5-docs)
 - Consider using [core.typed](https://github.com/clojure/core.typed)
+- Consider integrating http://yajsw.sourceforge.net/ for services (or other convenient OS service wrapper[s])
 - Spot, reshape and publish generally useful logic (right now everything except main plugin's function is either
 private or marked as `:internal`) 
 - More examples
