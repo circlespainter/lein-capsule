@@ -13,6 +13,8 @@
 
   :min-lein-version "2.4.3"
 
+  :profiles { :dev { :dependencies [[midje "1.6.3"]] } }
+
   :plugins [
              ; [lein-pprint "1.1.1"]
              ; [lein-marginalia "0.8.0"]
