@@ -1,12 +1,12 @@
 # *lein-capsule*<br/>A [Leiningen](https://github.com/technomancy/leiningen) plugin for [Parallel Universe](http://www.paralleluniverse.co)'s [Capsule](https://github.com/puniverse/capsule).
-[![Build Status](http://img.shields.io/travis/circlespainter/lein-capsule.svg?style=flat)](https://travis-ci.org/circlespainter/lein-capsule) [![Dependency Status](https://www.versioneye.com/user/projects/54379f97b2a9c5aed60000d3/badge.svg?style=flat)](https://www.versioneye.com/user/projects/54379f97b2a9c5aed60000d3) [![Version](http://img.shields.io/badge/version-0.1.0--red.svg?style=flat)](https://github.com/circlespainter/lein-capsule) [![License](http://img.shields.io/badge/license-EPL-blue.svg?style=flat)](https://www.eclipse.org/legal/epl-v10.html) [![License](http://img.shields.io/badge/license-LGPL-blue.svg?style=flat)](https://www.gnu.org/licenses/lgpl.html)
+[![Build Status](http://img.shields.io/travis/circlespainter/lein-capsule.svg?style=flat)](https://travis-ci.org/circlespainter/lein-capsule) [![Dependency Status](https://www.versioneye.com/user/projects/54379f97b2a9c5aed60000d3/badge.svg?style=flat)](https://www.versioneye.com/user/projects/54379f97b2a9c5aed60000d3) [![Version](http://img.shields.io/badge/version-0.1.0-red.svg?style=flat)](https://github.com/circlespainter/lein-capsule) [![License](http://img.shields.io/badge/license-EPL-blue.svg?style=flat)](https://www.eclipse.org/legal/epl-v10.html) [![License](http://img.shields.io/badge/license-LGPL-blue.svg?style=flat)](https://www.gnu.org/licenses/lgpl.html)
 
 A [Leiningen](https://github.com/technomancy/leiningen) plugin for
 [Parallel Universe](http://www.paralleluniverse.co)'s
 [Capsule](https://github.com/puniverse/capsule).
 
 Please report any issues. Very first release, partially tested
-(see [lein-capsule-test/project.clj](../master/lein-capsule-test/project.clj)),
+(see [lein-capsule-test/project.clj](../master/test_projects/lein-capsule-test/project.clj)),
 so expect some bumpiness and spec format changes until major release 1.0.
 
 ## Getting started
