@@ -1,4 +1,4 @@
-(defproject lein-capsule-test "0.1.0-SNAPSHOT"
+(defproject lein-capsule-test "0.1.0"
   :description "My lein-capsule test"
 
   :url "http://example.com/whatever"
@@ -8,7 +8,7 @@
     :url "http://www.eclipse.org/legal/epl-v10.html" }
 
   :plugins [
-    [lein-capsule "0.1.0-SNAPSHOT"]
+    [lein-capsule "0.1.0"]
     [lein-pprint "1.1.1"] ]
 
   :dependencies [
@@ -81,7 +81,7 @@
       ;; Optional, corresponds 1:1 to Application-Name manifest entry, check https://github.com/puniverse/capsule#application-id for defaults
       :name "lein-capsule-test"
       ;; Optional, corresponds 1:1 to Application-Version manifest entry, check https://github.com/puniverse/capsule#application-id for defaults
-      :version "0.1.0-SNAPSHOT" }
+      :version "0.1.0" }
 
   ;;; Optional, capsule modes, each of them can override anything except types and application settings
     :modes {
