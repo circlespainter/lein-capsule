@@ -41,7 +41,7 @@
           (.trim
             (reduce
               (fn [accum v] (str accum " " v)) ""
-              (get-in project cc/path-execution-boot-args [])))]
+              (get-in project (cc/mode-aware-path project cc/path-execution-boot-args mode-keyword) [])))]
     (if main-ns
       (->
         project
@@ -52,7 +52,7 @@
                 (cutils/add-to-manifest project "Args" args mode-keyword)
                 project)
             scripts
-              (get-in project (cc/mode-aware-path project cc/path-execution-boot-scriptsx mode-keyword))
+              (get-in project (cc/mode-aware-path project cc/path-execution-boot-scripts mode-keyword))
             artifact ; Default if unspecified is project artifact
               (get-in project (cc/mode-aware-path project cc/path-execution-boot-artifact mode-keyword)
                       [(symbol (:group project) (:name project)) (:version project)])]
@@ -80,7 +80,7 @@
   (let [patched-jvm-args
           (cutils/diff
             (:jvm-opts project)
-            (cutils/diff-section project cc/path-runtime-jvm-args mode-keyword))]
+            (cutils/get-diff-section project cc/path-runtime-jvm-args mode-keyword))]
     (cutils/add-to-manifest project "JVM-Args" (cstr/join " " patched-jvm-args) mode-keyword)))
 
 (defn- add-java-agents [project & [mode-keyword]]
@@ -89,7 +89,7 @@
           (cutils/diff
             ; TODO Bootclasspath agent artifacts not supported by Capsule AFAIK, but check
             (cutils/lein-agents-to-capsule-artifact-agents project)
-            (cutils/diff-section project cc/path-runtime-agents mode-keyword))]
+            (cutils/get-diff-section project cc/path-runtime-agents mode-keyword))]
     (cutils/add-to-manifest project "Java-Agents"
                             ; TODO simplify / de-uglify
                             (reduce
@@ -190,7 +190,7 @@
   (reduce-kv
     (fn [project k _] (capsulize project k))
     project
-    (get-in project cc/path-modes)))
+    (cutils/get-modes project)))
 
 (defn- manifest-put-maven [project & [mode-keyword]]
   "Adds manifest entries implementing lein-capsule's deps spec section"
@@ -291,7 +291,7 @@
 ; TODO Improve error reporting
 (defn- validate-capsule-modes [project]
   "Validates all defined capsule modes"
-  (let [modes (get-in project cc/path-modes)
+  (let [modes (cutils/get-modes project)
         default-modes-count (count (filter identity (map #(:default %) (vals modes))))]
     (cond
       (> default-modes-count 1)

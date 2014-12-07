@@ -1,5 +1,9 @@
 # Changelog
 
-## 0.1.0 / TBBD
+## 0.1.1
 
-- Initial release
+- Several fixes
+
+## 0.1.0
+
+- Initial release based on Capsule 0.10.0

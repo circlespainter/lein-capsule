@@ -1,4 +1,4 @@
-(defproject lein-capsule-test "0.1.0"
+(defproject lein-capsule-test "0.1.1"
   :description "My lein-capsule test"
 
   :url "http://example.com/whatever"
@@ -8,7 +8,7 @@
     :url "http://www.eclipse.org/legal/epl-v10.html" }
 
   :plugins [
-    [lein-capsule "0.1.0"]
+    [lein-capsule "0.1.1"]
     [lein-pprint "1.1.1"] ]
 
   :dependencies [
@@ -91,7 +91,10 @@
 
         :execution {
           :boot {
-            :clojure-ns lein-capsule-test.core } } }
+            :args ["arg1" "arg2"] }
+          :runtime {
+            :jvm-args {:add [-server]}
+            :jdk-required false } } }
 
       :my-mode-2 { :execution { :runtime { :jvm-args { :add ["-server"] } } } }
 

@@ -30,10 +30,9 @@
   (:import
     (co.paralleluniverse.capsule.build Dependencies)
     (co.paralleluniverse.capsule Jar)
-    (java.io File FileOutputStream)
-    (java.nio.file Path Paths Files StandardOpenOption OpenOption)
-    (java.util.zip ZipInputStream)
-    (java.util UUID)))
+    (java.io FileOutputStream)
+    (java.nio.file Paths Files StandardOpenOption OpenOption)
+    (java.util.zip ZipInputStream)))
 
 (defn- make-aether-dep [lein-style-spec]
   "Builds an Aether dependency from a Leinigen one"
@@ -63,7 +62,7 @@
   "Computes JVM dependencies based on both Leiningen and Capsule-spec"
   (cutils/diff
     (jvm-lein-deps project)
-    (cutils/diff-section project cc/path-maven-dependencies-artifacts-jvm mode-keyword)))
+    (cutils/get-diff-section project cc/path-maven-dependencies-artifacts-jvm mode-keyword)))
 
 (defn- dependency-matches-exception [dep dep-exc]
   "Tells if the dependecies match"
@@ -103,37 +102,61 @@
   "Extracts Leiningen repositories from project"
   (:repositories project))
 
+(defn- is-non-default-mode-and-does-not-contribute-to-path [project path & [mode-keyword]]
+  "Tests if a mode is non-default and does not contribute something to a given spec path"
+  (and mode-keyword
+       (cc/non-default-mode project mode-keyword)
+       (not (get-in project (cc/mode-aware-path project path mode-keyword)))))
+
 (defn- manifest-put-mvn-repos [project & [mode-keyword]]
   "Adds repositories to the Capsule manifest"
-  (let [patched-repos
+  (if (is-non-default-mode-and-does-not-contribute-to-path
+        project cc/path-maven-dependencies-repositories mode-keyword)
+    project
+    (let [patched-repos
           (cons cc/clojars-repo-url
                 (cutils/diff
                   (map make-aether-repo (lein-repos project))
-                  (cutils/diff-section project cc/path-maven-dependencies-repositories mode-keyword)))]
-    (cutils/add-to-manifest
-      project
-      "Repositories"
-      (cstr/join " " patched-repos)
-      mode-keyword)))
-
-(declare retrieve-and-insert-mvn-deps)
+                  (cutils/get-diff-section project cc/path-maven-dependencies-repositories mode-keyword)))]
+      (cutils/add-to-manifest
+        project
+        "Repositories"
+        (cstr/join " " patched-repos)
+        mode-keyword))))
 
 (defn- manifest-put-mvn-deps [project & [mode-keyword exceptions exceptions-mode]]
-  "Specifies some, all or all except some project dependencies for Capsule to retrieve at jar boot, inserting the
-  remaining ones in the capsule jar under a Capsule-compliant tree structure"
+  "Specifies some, all or all except some project dependencies for Capsule to retrieve at jar boot"
   (let [make-deps-string
-          #(cstr/join " " (map make-aether-dep (filter-deps (% project mode-keyword) exceptions exceptions-mode)))
-        add-mf #(cutils/add-to-manifest %1 %2 %3 mode-keyword)
-
-        jvm (make-deps-string jvm-computed-capsule-deps)
-        native-mac (make-deps-string native-mac-capsule-deps)
-        native-linux (make-deps-string native-linux-capsule-deps)
-        native-win (make-deps-string native-windows-capsule-deps)]
+          (fn [project path deps-fn]
+            (if (is-non-default-mode-and-does-not-contribute-to-path project path mode-keyword)
+              ""
+              (cstr/join
+                " " (map make-aether-dep (filter-deps (deps-fn project mode-keyword) exceptions exceptions-mode)))))
+        add-deps
+          (fn [project path mf-entry-name deps-fn]
+            (if (is-non-default-mode-and-does-not-contribute-to-path project path mode-keyword)
+              project
+              (cutils/add-to-manifest project mf-entry-name (make-deps-string project path deps-fn) mode-keyword)))]
+    (main/debug
+      (str "Maven JVM deps (mode " mode-keyword "): "
+           (make-deps-string project cc/path-maven-dependencies-artifacts-jvm jvm-computed-capsule-deps)))
+    (main/debug
+      (str "Maven native Mac deps (mode " mode-keyword "): "
+           (make-deps-string project cc/path-maven-dependencies-artifacts-native-mac native-mac-capsule-deps)))
+    (main/debug
+      (str "Maven native Linux deps (mode " mode-keyword "): "
+           (make-deps-string project cc/path-maven-dependencies-artifacts-native-linux native-linux-capsule-deps)))
+    (main/debug
+      (str "Maven native Windows deps (mode " mode-keyword "): "
+           (make-deps-string project cc/path-maven-dependencies-artifacts-native-windows native-windows-capsule-deps)))
     (-> project
-        (add-mf "Dependencies" jvm)
-        (add-mf "Native-Dependencies-mac" native-mac)
-        (add-mf "Native-Dependencies-Linux" native-linux)
-        (add-mf "Native-Dependencies-Win" native-win))))
+        (add-deps cc/path-maven-dependencies-artifacts-jvm "Dependencies" jvm-computed-capsule-deps)
+        (add-deps cc/path-maven-dependencies-artifacts-native-mac "Native-Dependencies-Mac" native-mac-capsule-deps)
+        (add-deps
+          cc/path-maven-dependencies-artifacts-native-linux "Native-Dependencies-Linux" native-linux-capsule-deps)
+        (add-deps
+          cc/path-maven-dependencies-artifacts-native-windows
+          "Native-Dependencies-Windows" native-windows-capsule-deps))))
 
 (defn- get-dep-files [project deps]
   "Given a seq of Leiningen-style dependencies, retrieves files for the whole transitive dependency graph"
@@ -145,13 +168,19 @@
 (defn- retrieve-and-insert-mvn-deps [project capsule & [mode-keyword exceptions exceptions-mode]]
   "Retrieves some, all or all except some project dependencies and inserts them in the capsule jar under a
    Capsule-compliant tree structure, leaving the remaining ones for Capsule to retrieve at jar boot"
-  (let [make-deps #(filter-deps (% project mode-keyword) exceptions exceptions-mode)
-
-        jvm (make-deps jvm-computed-capsule-deps)
-        native-mac (make-deps native-mac-capsule-deps)
-        native-linux (make-deps native-linux-capsule-deps)
-        native-win (make-deps native-windows-capsule-deps)]
-    (doseq [dep-file (get-dep-files project (concat jvm native-mac native-linux native-win))]
+  (let [make-deps
+          (fn [deps-fn path]
+            (if (is-non-default-mode-and-does-not-contribute-to-path project path mode-keyword)
+              [] (filter-deps (deps-fn project mode-keyword) exceptions exceptions-mode)))
+        jvm (make-deps jvm-computed-capsule-deps cc/path-maven-dependencies-artifacts-jvm )
+        native-mac (make-deps native-mac-capsule-deps cc/path-maven-dependencies-artifacts-native-mac)
+        native-linux (make-deps native-linux-capsule-deps cc/path-maven-dependencies-artifacts-native-linux)
+        native-windows (make-deps native-windows-capsule-deps cc/path-maven-dependencies-artifacts-native-windows)]
+    (main/debug (str "Embedding JVM deps: " jvm " (mode " mode-keyword ")"))
+    (main/debug (str "Embedding native Mac deps: " native-mac " (mode" mode-keyword ")"))
+    (main/debug (str "Embedding native Linux deps: " native-linux " (mode" mode-keyword ")"))
+    (main/debug (str "Embedding native Windows deps: " native-windows " (mode" mode-keyword ")"))
+    (doseq [dep-file (get-dep-files project (concat jvm native-mac native-linux native-windows))]
       (.addEntry capsule (.getName dep-file) dep-file))))
 
 (defn- write-manifest [capsule project]
@@ -159,112 +188,138 @@
   (doseq [[k v] (get-in project (cc/capsule-manifest-path project))]
     (cond
       (string? v)
-        (.setAttribute capsule k v)
+        (do
+          (main/debug "Setting main manifest attribute:" k v)
+          (.setAttribute capsule k v))
       (coll? v)
         (doseq [[section-k section-v] v]
+          (main/debug "Setting section manifest attribute:" (name k) section-k section-v)
           (.setAttribute capsule (name k) section-k section-v)))))
-
-(defn- get-capsules-output-dir [project]
-  "Computes the capsules output dir starting from the project target folder based on specification or sensible defaults"
-  (str (:target-path project) "/" (or (.toString (get-in project (cons :capsule cc/path-output-dir))) "capsules")))
 
 (defn- capsule-output-stream [project spec]
   "Creates a capsule output stream"
-  (let [out-file-name (str (get-capsules-output-dir project) "/" (:name spec))]
+  (let [out-file-name (str (cutils/get-capsules-output-dir project) "/" (:name spec))]
     (clojure.java.io/make-parents out-file-name)
     (FileOutputStream. out-file-name)))
 
-(defn- copy-jar-files-into-capsule [jar-files capsule]
+(defn- copy-jar-files-into-capsule [project-jar-files capsule]
   "Copy the 'leniningen.jar/jar'-produced project jars in the capsule's root"
-  (doseq [jar-path (map #(Paths/get % (make-array String 0)) (vals jar-files))]
+  (doseq [jar-path (map #(Paths/get % (make-array String 0)) (vals project-jar-files))]
     (.addEntry capsule (.getFileName jar-path) jar-path)))
 
-(defn- extract-jar-contents-to-capsule [jar-files capsule]
+(defn- extract-jar-contents-to-capsule [project-jar-files capsule]
   "Extracts the 'leniningen.jar/jar'-produced project jars in the capsule's root"
   (doseq [jar-zis
             (map #(ZipInputStream.
                    (Files/newInputStream
                      (Paths/get % (make-array String 0))
                      (into-array OpenOption [StandardOpenOption/READ])))
-                 (vals jar-files))]
+                 (vals project-jar-files))]
     (.addEntries capsule nil jar-zis)))
 
-(defn- build-mixed [base-type jar-files project spec & [excepts]]
-  "Builds a mixed capsule"
-  ; Will add every dependency to the manifest
-  ; TODO De-uglify and cleanup, empty bindings for side-effects are smelly
-  (let [capsule (Jar.)
-        _ (.setOutputStream capsule (capsule-output-stream project spec))
+; TODO If possible bettet to avoid special handling depending on default mode presence
+(defn- build-mixed [base-type project-jar-files project spec & [excepts]]
+  "Builds a mixed capsule: will add every dependency to the manifest or will insert/embed it"
+  (let [capsule (.setOutputStream (Jar.) (capsule-output-stream project spec))
         project
+          ; If there isn't a default mode, add manifest repos without passing any mode
+          (if (cutils/get-capsule-default-mode-name project) project (manifest-put-mvn-repos project))
+        project
+          ; If there isn't a default mode, add manifest deps without passing any mode
+          (if (cutils/get-capsule-default-mode-name project)
+            project
+            (manifest-put-mvn-deps project nil excepts (case base-type :fat :only :thin :except)))
+        project
+          ; For each mode, add relevant overriding manifest repos and deps
           (reduce-kv
             (fn [project k _]
               (-> project
                   (manifest-put-mvn-repos k)
                   (manifest-put-mvn-deps k excepts (case base-type :fat :only :thin :except))))
             project
-            (get-in project cc/path-modes))
+            (cutils/get-modes project))
         project
+          ; If not thin, needs extracting jars
           (if (or (not= base-type :thin) (seq excepts))
             (cutils/add-to-manifest project "Extract-Capsule" "true")
-            project)
-        _ (write-manifest capsule project)
-        _ ; Doing only for side-effects
-          (reduce-kv
-            (fn [project k _]
-              (retrieve-and-insert-mvn-deps project capsule k excepts (case base-type :fat :except :thin :only)))
-            project
-            (get-in project cc/path-modes))]
+            project)]
 
+    ; Write capsule manifest
+    (write-manifest capsule project)
+
+    ; If there isn't a default mode, insert jars without passing any mode
+    (if (not (cutils/get-capsule-default-mode-name project))
+      (retrieve-and-insert-mvn-deps project capsule nil excepts (case base-type :fat :except :thin :only)))
+
+    ; For each mode, insert its jars
+    (reduce-kv
+      (fn [project k _]
+        (retrieve-and-insert-mvn-deps project capsule k excepts (case base-type :fat :except :thin :only)))
+      project
+      (cutils/get-modes project))
+
+    ; If it's not a completely self-contained fat Capsule, extract full Capsule's jar including the dependency manager
     (if (or
           (not= base-type :fat)
           (seq excepts)
           (seq (cutils/execution-boot-artifacts project))
           (cutils/has-artifact-agents project))
-      ; Extract full jar to capsule, including the dependency manager
       (extract-jar-contents-to-capsule
-        {:capsule-jar (.getAbsolutePath (first (get-dep-files project [['co.paralleluniverse/capsule cc/capsule-version]])))}
+        {:capsule-jar
+         (.getAbsolutePath (first (get-dep-files project [['co.paralleluniverse/capsule cc/capsule-version]])))}
         capsule)
       ; Else the Capsule class will be enough
       (.addClass capsule (Class/forName "Capsule")))
+
+    ; If it's a fully thin capsule without any exceptons, extract project jars
     (if (and (= base-type :thin) (not (seq excepts)))
-      (extract-jar-contents-to-capsule jar-files capsule)
-      (copy-jar-files-into-capsule jar-files capsule))
+      (extract-jar-contents-to-capsule project-jar-files capsule)
+      ; Else copy them
+      (copy-jar-files-into-capsule project-jar-files capsule))
+
+    ; Finally close capsule's stream
+    ; TODO maybe there's a loan way to do it
     (.close capsule)))
 
-(defn- build-thin-spec [jar-files project spec]
+(defn- build-thin-spec [project-jar-files project spec]
   "Builds a thin capsule"
-  (build-mixed :thin jar-files project spec))
+  (build-mixed :thin project-jar-files project spec))
 
-(defn- build-fat-spec [jar-files project spec]
+(defn- build-fat-spec [project-jar-files project spec]
   "Builds a fat capsule"
-  (build-mixed :fat jar-files project spec))
+  (build-mixed :fat project-jar-files project spec))
 
-(defn- build-thin-except-clojure-spec [jar-files project spec]
+(defn- build-thin-except-clojure-spec [project-jar-files project spec]
   "Builds a thin capsule embedding clojure"
-  (build-mixed :thin jar-files project spec '[[org.clojure/clojure]]))
+  (build-mixed :thin project-jar-files project spec '[[org.clojure/clojure]]))
 
-(defn- build-fat-except-clojure-spec [jar-files project spec]
+(defn- build-fat-except-clojure-spec [project-jar-files project spec]
   "Builds a fat capsule excluding clojure"
-  (build-mixed :fat jar-files project spec '[[org.clojure/clojure]]))
+  (build-mixed :fat project-jar-files project spec '[[org.clojure/clojure]]))
 
 ; TODO Case for multi?
-(defn- build-mixed-spec [jar-files project spec]
+(defn- build-mixed-spec [project-jar-files project spec]
   "Builds a mixed capsule"
   (cond
-    (:fat-except spec) (build-mixed :fat jar-files project spec (:fat-except spec))
-    (:thin-except spec) (build-mixed :thin jar-files project spec (:thin-except spec))
+    (:fat-except spec) (build-mixed :fat project-jar-files project spec (:fat-except spec))
+    (:thin-except spec) (build-mixed :thin project-jar-files project spec (:thin-except spec))
     :else
       (throw (RuntimeException. "Unexpected mixed capsule type specified, use either :fat-except or :thin-except"))))
 
 ; TODO Case for multi?
-(defn ^:internal build-capsule [jar-files project capsule-type-name capsule-type-spec]
+(defn ^:internal build-capsule [project-jar-files project capsule-type-name capsule-type-spec]
   "Builds the capsule(s) of a given type using the pre-processed project map"
+  (main/debug (str "\nBuilding "
+                   (name capsule-type-name)
+                   " capsule "
+                   (cutils/get-capsules-output-dir project) "/" (:name capsule-type-spec)
+                   ", current manifest " (get-in project (cc/capsule-manifest-path project)) "\n"))
   ((case capsule-type-name
      :thin build-thin-spec
      :fat build-fat-spec
      :thin-except-clojure build-thin-except-clojure-spec
      :fat-except-clojure build-fat-except-clojure-spec
      :mixed build-mixed-spec)
-    jar-files project capsule-type-spec)
+    project-jar-files project capsule-type-spec)
   (main/info (str "Created " (name capsule-type-name) " capsule "
-                  (get-capsules-output-dir project) "/" (:name capsule-type-spec) "")))
+                  (cutils/get-capsules-output-dir project) "/" (:name capsule-type-spec) "")))

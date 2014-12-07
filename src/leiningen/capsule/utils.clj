@@ -15,7 +15,12 @@
 
 (ns ^{ :author "circlespainter" :internal true } leiningen.capsule.utils
   "Various capsule-building utilities"
-  (:require [leiningen.capsule.consts :as cc]))
+  (:require [leiningen.capsule.consts :as cc]
+            [leiningen.core.main :as main]))
+
+(defn ^:internal get-modes [project]
+  "Extracts the modes map from a project"
+  (get-in project cc/path-modes {}))
 
 (defn ^:internal get-capsule-types [project]
   "Extracts, normalizes and returns the enabled capsule types sub-map, if any"
@@ -23,18 +28,22 @@
     #(let [[k v] %] (if (sequential? v) (map (fn [e] [k e]) v) [%]))
     (seq (get-in project cc/path-types))))
 
-(defn ^:internal get-capsule-default-mode [project]
+(defn ^:internal get-capsule-default-mode-keyval [project]
   "Extracts and returns the default capsule mode sub-map, if any"
-  (reduce-kv (fn [i _ v] (merge i (if (:default v) (dissoc v :default) {}))) {} (get-in project cc/path-modes)))
+  (first (filter (fn [[_ v]] (:default v)) (get-modes project))))
+
+(defn ^:internal get-capsule-default-mode [project]
+  "Extracts and returns the default capsule mode name, if any"
+  (second (get-capsule-default-mode-keyval project)))
 
 (defn ^:internal get-capsule-default-mode-name [project]
-  "Extracts and returns the default capsule mode sub-map, if any"
-  (reduce-kv (fn [i k v] (str i (if (:default v) k ""))) "" (get-in project cc/path-modes)))
+  "Extracts and returns the default capsule mode name, if any"
+  (first (get-capsule-default-mode-keyval project)))
 
 (defn ^:internal get-project-without-default-mode [project]
   "Removes the default capsule mode from project"
   (update-in project cc/path-modes
-    #(reduce-kv (fn [modes-map k v] (if (:default v) (dissoc modes-map k) modes-map)) %1 %1)))
+    #(reduce-kv (fn [modes-map k v] (if (:default v) (dissoc modes-map k) modes-map)) (or %1 {}) (or %1 {}))))
 
 (defn ^:internal artifact-to-string [[sym ver]]
   "Returns the string representation of a Leiningen artifact"
@@ -65,11 +74,15 @@
           (or ; Skip entries for modes with identical value to main section
             (nil? mode-keyword)
             (not= transformed-value (capsule-manifest-value project manifest-entry-name))))
-      (update-in project (cc/capsule-manifest-path project mode-keyword)
-                 #(merge
-                   (or % {})
-                   { manifest-entry-name transformed-value }))
-      project)))
+      (do
+        (main/debug "Inserting manifest entry" path mode-keyword manifest-entry-name transformed-value (cc/capsule-manifest-path project mode-keyword))
+        (update-in project (cc/capsule-manifest-path project mode-keyword)
+                   #(merge
+                     (or % {})
+                     { manifest-entry-name transformed-value })))
+      (do
+        (main/debug "Skipping manifest entry" path mode-keyword manifest-entry-name value transformed-value transformed-value-is-coll-or-string (cc/capsule-manifest-path project mode-keyword))
+        project))))
 
 (defn ^:internal add-to-manifest-if-mode-path [project path manifest-entry-name f & [mode-keyword]]
   "Will add an entry's transformation through \"f\" in the given mode-aware project map path (if found) to the
@@ -102,9 +115,9 @@
                #(merge % { manifest-entry-name manifest-entry-value }))
     project))
 
-(defn ^:internal diff-section [project path & [mode-keyword]]
+(defn ^:internal get-diff-section [project path & [mode-keyword]]
   "Returns the correct diff section based on mode, if specified, with fallback to global one"
-  (or ; Either the type-overridden, if present, or the global one
+  (or ; Either the mode-overridden, if present, or the global one
     (get-in project (cc/mode-aware-path project path mode-keyword))
     (get-in project (cons :capsule path))))
 
@@ -157,3 +170,8 @@
                       agents
                       (get-in % cc/path-runtime-agents))
                     (vals (get-in project cc/path-types)))))))
+
+(defn ^:internal get-capsules-output-dir [project]
+  "Computes the capsules output dir starting from the project target folder based on specification or sensible defaults"
+  (str (:target-path project) "/" (or (.toString (get-in project (cons :capsule cc/path-output-dir))) "capsules")))
+

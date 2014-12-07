@@ -1,4 +1,4 @@
-(defproject lein-capsule "0.1.0"
+(defproject lein-capsule "0.1.1"
 
   :description "A Leiningen plugin for Parallel Universe's Capsule"
 

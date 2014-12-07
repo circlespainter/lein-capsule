@@ -2,5 +2,5 @@
 
 (defn -main
   "I don't do a whole lot."
-  []
-  (println "Hello, World!"))
+  [& args]
+  (println "Hello, World!" args))

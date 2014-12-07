@@ -34,8 +34,7 @@
 (def ^:internal path-application-version [:application :version])
 (def ^:internal path-capsule-default-name [:name])
 (def ^:internal path-execution-boot-main-class [:execution :boot :main-class])
-(def ^:internal path-execution-boot-clojure-ns [:execution :boot :clojure-ns])
-(def ^:internal path-execution-boot-scriptsx [:execution :boot :scripts])
+(def ^:internal path-execution-boot-scripts [:execution :boot :scripts])
 (def ^:internal path-execution-boot-artifact [:execution :boot :artifact])
 (def ^:internal path-execution-boot-extract-capsule [:execution :boot :extract-capsule])
 (def ^:internal path-execution-boot-args [:execution :boot :args])
@@ -66,9 +65,12 @@
 (def ^:internal path-modes [:capsule :modes])
 (def ^:internal path-types [:capsule :types])
 
-(defn- non-default-mode [project & [mode-keyword]]
+(defn ^:internal non-default-mode [project & [mode-keyword]]
   "Determines if the mode is a default one"
   (and mode-keyword (not (get-in project (concat path-modes [mode-keyword :default])))))
+
+(defn ^:internal default-mode [project & [mode-keyword]]
+  (and mode-keyword (get-in project (concat path-modes [mode-keyword :default]))))
 
 (defn ^:internal mode-aware-path [project path & [mode-keyword]]
   "Returns the correct path in the project's capsule specification sub-map (source) based on path, mode name and
