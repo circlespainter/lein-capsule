@@ -1,4 +1,4 @@
-(defproject lein-capsule "0.1.1"
+(defproject lein-capsule "0.2.0-SNAPSHOT"
 
   :description "A Leiningen plugin for Parallel Universe's Capsule"
 
@@ -11,7 +11,12 @@
   ; TODO Check if it works to have it outside of license(s), Leiningen's sample doesn't list this case
   :distribution :repo
 
-  :min-lein-version "2.4.3"
+  :min-lein-version "2.5.0"
+
+  :source-paths      ["src/main/clojure"]
+  :test-paths        ["src/test/clojure"]
+  :resource-paths    ["src/main/resources"]
+  :java-source-paths ["src/main/java"]
 
   :profiles { :dev { :dependencies [[midje "1.6.3"]] } }
 
@@ -23,9 +28,8 @@
              ; [lein-midje "3.1.3"]
            ]
 
-  :dependencies [[org.eclipse.aether/aether-api "1.0.0.v20140518"]
-                 [co.paralleluniverse/capsule "0.10.0"]
-                 [co.paralleluniverse/capsule-build "0.10.0"]
-                 [co.paralleluniverse/capsule-util "0.10.0"]]
+  :dependencies [[co.paralleluniverse/capsule "1.0-rc2-SNAPSHOT"]
+                 [co.paralleluniverse/capsule-util "1.0-rc2-SNAPSHOT"]
+                 [co.paralleluniverse/capsule-maven "1.0-rc2-SNAPSHOT"]]
 
   :eval-in-leiningen true)

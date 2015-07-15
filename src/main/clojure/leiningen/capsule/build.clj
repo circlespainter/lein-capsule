@@ -28,7 +28,7 @@
     [leiningen.capsule.consts :as cc])
 
   (:import
-    (co.paralleluniverse.capsule.build Dependencies)
+    (capsule Dependencies)
     (co.paralleluniverse.capsule Jar)
     (java.io FileOutputStream)
     (java.nio.file Paths Files StandardOpenOption OpenOption)
@@ -217,6 +217,13 @@
                  (vals project-jar-files))]
     (.addEntries capsule nil jar-zis)))
 
+(defn self-contained [project base-type excepts]
+  (not (or
+    (not= base-type :fat)
+    (seq excepts)
+    (seq (cutils/execution-boot-artifacts project))
+    (cutils/has-artifact-agents project))))
+
 ; TODO If possible bettet to avoid special handling depending on default mode presence
 (defn- build-mixed [base-type project-jar-files project spec & [excepts]]
   "Builds a mixed capsule: will add every dependency to the manifest or will insert/embed it"
@@ -242,6 +249,10 @@
           ; If not thin, needs extracting jars
           (if (or (not= base-type :thin) (seq excepts))
             (cutils/add-to-manifest project "Extract-Capsule" "true")
+            project)
+        project
+          (if (not (self-contained project base-type excepts))
+            (cutils/add-to-manifest project "Caplets" "MavenCapsule")
             project)]
 
     ; Write capsule manifest
@@ -259,19 +270,16 @@
       (cutils/get-modes project))
 
     ; If it's not a completely self-contained fat Capsule, extract full Capsule's jar including the dependency manager
-    (if (or
-          (not= base-type :fat)
-          (seq excepts)
-          (seq (cutils/execution-boot-artifacts project))
-          (cutils/has-artifact-agents project))
-      (extract-jar-contents-to-capsule
-        {:capsule-jar
-         (.getAbsolutePath (first (get-dep-files project [['co.paralleluniverse/capsule cc/capsule-version]])))}
-        capsule)
+    (if (not (self-contained project base-type excepts))
+      (do
+        (extract-jar-contents-to-capsule
+          {:capsule-maven-jar
+           (.getAbsolutePath (first (get-dep-files project [['co.paralleluniverse/capsule-maven cc/capsule-version]])))}
+          capsule))
       ; Else the Capsule class will be enough
       (.addClass capsule (Class/forName "Capsule")))
 
-    ; If it's a fully thin capsule without any exceptons, extract project jars
+    ; If it's a fully thin capsule without any exceptions, extract project jars
     (if (and (= base-type :thin) (not (seq excepts)))
       (extract-jar-contents-to-capsule project-jar-files capsule)
       ; Else copy them

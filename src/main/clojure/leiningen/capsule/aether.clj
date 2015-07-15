@@ -4,20 +4,20 @@
 
 (ns leiningen.capsule.aether
   (:refer-clojure :exclude  [type proxy])
-  (:import (org.eclipse.aether.repository Authentication RepositoryPolicy LocalRepository RemoteRepository RemoteRepository$Builder
+  (:import (capsule.org.eclipse.aether.repository Authentication RepositoryPolicy LocalRepository RemoteRepository RemoteRepository$Builder
                                           Proxy)
-           (org.eclipse.aether.graph Dependency Exclusion)
-           (org.eclipse.aether.artifact DefaultArtifact)
+           (capsule.org.eclipse.aether.graph Dependency Exclusion)
+           (capsule.org.eclipse.aether.artifact DefaultArtifact)
            (capsule.org.eclipse.aether.util.repository AuthenticationBuilder)
-           (org.sonatype.aether.util.repository DefaultProxySelector)))
+           (capsule.org.eclipse.aether.util.repository DefaultProxySelector)))
 
-(def update-policies {:daily RepositoryPolicy/UPDATE_POLICY_DAILY
-                      :always RepositoryPolicy/UPDATE_POLICY_ALWAYS
-                      :never RepositoryPolicy/UPDATE_POLICY_NEVER})
+(def update-policies {:daily "daily"
+                      :always "always"
+                      :never "never"})
 
-(def checksum-policies {:fail RepositoryPolicy/CHECKSUM_POLICY_FAIL
-                        :ignore RepositoryPolicy/CHECKSUM_POLICY_IGNORE
-                        :warn RepositoryPolicy/CHECKSUM_POLICY_WARN})
+(def checksum-policies {:fail "fail"
+                        :ignore "ignore"
+                        :warn "warn"})
 
 (defn- policy
   [policy-settings enabled?]
@@ -75,17 +75,6 @@
   [group-artifact]
   (or (namespace group-artifact) (name group-artifact)))
 
-
-(defn- coordinate-string
-  "Produces a coordinate string with a format of
-   <groupId>:<artifactId>[:<extension>[:<classifier>]]:<version>>
-   given a lein-style dependency spec.  :extension defaults to jar."
-  [[group-artifact version & {:keys [classifier extension] :or {extension "jar"}}]]
-  (->> [(group group-artifact) (name group-artifact) extension classifier version]
-    (remove nil?)
-    (interpose \:)
-    (apply str)))
-
 (defn- exclusion
   [[group-artifact & {:as opts}]]
   (Exclusion.
@@ -99,13 +88,16 @@
     [spec]
     spec))
 
+(defn- artifact
+  [[group-artifact version & {:keys [classifier extension]}]]
+  (DefaultArtifact. (group group-artifact) (name group-artifact) classifier extension version))
+
 (defn- dependency
-  [[group-artifact version & {:keys [scope optional exclusions]
-                              :as opts
+  [[_ _ & {:keys [scope optional exclusions]
                               :or {scope "compile"
                                    optional false}}
     :as dep-spec]]
-  (Dependency. (DefaultArtifact. (coordinate-string dep-spec))
+  (Dependency. (artifact dep-spec)
                scope
                optional
                (map (comp exclusion normalize-exclusion-spec) exclusions)))

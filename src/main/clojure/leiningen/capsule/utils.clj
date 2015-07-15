@@ -174,4 +174,3 @@
 (defn ^:internal get-capsules-output-dir [project]
   "Computes the capsules output dir starting from the project target folder based on specification or sensible defaults"
   (str (:target-path project) "/" (or (get-in project (cons :capsule cc/path-output-dir)) "capsules")))
-

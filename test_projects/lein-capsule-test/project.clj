@@ -1,4 +1,4 @@
-(defproject lein-capsule-test "0.1.1"
+(defproject lein-capsule-test "0.2.0-SNAPSHOT"
   :description "My lein-capsule test"
 
   :url "http://example.com/whatever"
@@ -8,7 +8,7 @@
     :url "http://www.eclipse.org/legal/epl-v10.html" }
 
   :plugins [
-    [lein-capsule "0.1.1"]
+    [lein-capsule "0.2.0-SNAPSHOT"]
     [lein-pprint "1.1.1"] ]
 
   :dependencies [
