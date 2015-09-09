@@ -147,9 +147,13 @@
 
 (defn- manifest-put-boot [project & [mode-keyword]]
   "Adds manifest entries implementing lein-capsule's boot spec section"
-  (let [project
+  (let [main-class (get-in project cc/path-execution-boot-main-class "Capsule")
+        project
         (if (not mode-keyword)
-          (cutils/add-to-manifest project "Main-Class" (get-in project cc/path-execution-boot-main-class "Capsule"))
+          (->
+            project
+            (cutils/add-to-manifest "Premain-Class" main-class)
+            (cutils/add-to-manifest "Main-Class" main-class))
           project)]
     (->
       project

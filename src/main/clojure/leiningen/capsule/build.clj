@@ -290,12 +290,14 @@
       (cutils/get-modes project))
 
     ; If it's not a completely self-contained fat Capsule, extract full Capsule's jar including the dependency manager
-    (if (not (self-contained project base-type excepts))
+    (if-not (self-contained project base-type excepts)
       (do
         (extract-jar-contents-to-capsule
-          {:capsule-maven-jar
-           (.getAbsolutePath (first (get-dep-files project [['co.paralleluniverse/capsule-maven cc/capsule-version]])))}
-          capsule))
+          {
+           ; :capsule-jar (.getAbsolutePath (first (get-dep-files project [['co.paralleluniverse/capsule cc/capsule-version]])))
+           :capsule-maven-jar (.getAbsolutePath (first (get-dep-files project [['co.paralleluniverse/capsule-maven cc/capsule-version]])))}
+          capsule)
+        (.addClass capsule (Class/forName "Capsule")))
       ; Else the Capsule class will be enough
       (.addClass capsule (Class/forName "Capsule")))
 
