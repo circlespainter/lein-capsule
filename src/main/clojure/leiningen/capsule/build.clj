@@ -125,11 +125,20 @@
   (if (is-non-default-mode-and-does-not-contribute-to-path
         project cc/path-maven-dependencies-repositories mode-keyword)
     project
-    (let [patched-repos
-          (cons cc/clojars-repo-url
-                (cutils/diff
-                  (map make-aether-repo (lein-repos project))
-                  (cutils/get-diff-section project cc/path-maven-dependencies-repositories mode-keyword)))]
+    (let [lein-prj-repos (lein-repos project)
+          aether-prj-repos (map make-aether-repo lein-prj-repos)
+          repos
+            (cutils/diff
+              aether-prj-repos
+              (cutils/get-diff-section project cc/path-maven-dependencies-repositories mode-keyword))
+          contains-clojars?
+            (some
+              #(.contains % "clojars.org/repo")
+              repos)
+          patched-repos
+            (if contains-clojars?
+              repos
+              (concat repos [cc/clojars-repo-url]))]
       (cutils/add-to-manifest
         project
         "Repositories"
