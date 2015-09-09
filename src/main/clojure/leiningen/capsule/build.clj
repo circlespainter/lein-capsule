@@ -42,6 +42,10 @@
   "Extracts Leiningen dependencies from a project"
   (:dependencies project))
 
+(defn- jvm-lein-agent-deps [project]
+  "Extracts Leiningen agent dependencies from a project"
+  (:java-agents project))
+
 (defn- capsule-deps [project path & [mode-keyword]]
   "Extracts Capsule-spec dependencies from a specific path location"
   (get-in project (cc/mode-aware-path project path mode-keyword)))
@@ -60,9 +64,17 @@
 
 (defn- jvm-computed-capsule-deps [project & [mode-keyword]]
   "Computes JVM dependencies based on both Leiningen and Capsule-spec"
-  (cutils/diff
-    (jvm-lein-deps project)
-    (cutils/get-diff-section project cc/path-maven-dependencies-artifacts-jvm mode-keyword)))
+  (let [p1
+          (cutils/diff
+            (jvm-lein-deps project)
+            (cutils/get-diff-section project cc/path-maven-dependencies-artifacts-jvm mode-keyword))
+        p2
+          (cutils/diff
+            (jvm-lein-agent-deps project)
+            (cutils/get-diff-section project cc/path-runtime-java-agents mode-keyword))
+        p3
+          (get-in project (cc/mode-aware-path project cc/path-runtime-native-agents mode-keyword))]
+    (concat p1 p2 p3)))
 
 (defn- dependency-matches-exception [dep dep-exc]
   "Tells if the dependecies match"
@@ -221,8 +233,7 @@
   (not (or
     (not= base-type :fat)
     (seq excepts)
-    (seq (cutils/execution-boot-artifacts project))
-    (cutils/has-artifact-agents project))))
+    (seq (cutils/execution-boot-artifacts project)))))
 
 ; TODO If possible bettet to avoid special handling depending on default mode presence
 (defn- build-mixed [base-type project-jar-files project spec & [excepts]]

@@ -45,13 +45,17 @@
   (update-in project cc/path-modes
     #(reduce-kv (fn [modes-map k v] (if (:default v) (dissoc modes-map k) modes-map)) (or %1 {}) (or %1 {}))))
 
-(defn ^:internal artifact-to-string [[sym ver]]
+(defn ^:internal artifact-to-string [[sym & more :as v]]
   "Returns the string representation of a Leiningen artifact"
-  (let [nmspc (namespace sym)
-        nmsym (name sym)]
-    (str
-      (if nmspc (str nmspc ":") "")
-      nmsym ":" ver)))
+  (if (string? sym)
+    sym
+    (let [nmspc (namespace sym)
+          nmsym (name sym)
+          classifier-idx (.indexOf v :classifier)]
+      (str
+        (if nmspc (str nmspc ":") "")
+        nmsym ":" (second v) ; version
+        (if classifier-idx (str ":" (nth v (+ classifier-idx 1))) "")))))
 
 (defn ^:internal capsule-manifest [project]
   "Extracts the capsule-based manifest sub-map from a Leiningen project"
@@ -151,25 +155,6 @@
           (cons
             (capsule-manifest-value project "Application")
             (map #(get "Application" %) (filter map? (vals (capsule-manifest project)))))))
-
-(defn ^:internal lein-agents-to-capsule-artifact-agents [project]
-  "Builds a collection of capsule-spec-format artifact agents from project's"
-  ; TODO Bootclasspath agent artifacts not supported by Capsule AFAIK, but check
-  (map #({:artifact %}) (filter #(not (:bootclasspath %)) (:java-agents project))))
-
-(defn ^:internal has-artifact-agents [project]
-  "Tell if there's any artifact agent specification in global section or in types"
-  (let [agents (lein-agents-to-capsule-artifact-agents project)]
-    (not-every? empty?
-                (cons
-                  (diff
-                    agents
-                    (get-in project (cons :capsule cc/path-runtime-agents)))
-                  (map
-                    #(diff
-                      agents
-                      (get-in % cc/path-runtime-agents))
-                    (vals (get-in project cc/path-types)))))))
 
 (defn ^:internal get-capsules-output-dir [project]
   "Computes the capsules output dir starting from the project target folder based on specification or sensible defaults"

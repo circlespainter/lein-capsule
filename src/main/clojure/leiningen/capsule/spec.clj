@@ -83,37 +83,33 @@
             (cutils/get-diff-section project cc/path-runtime-jvm-args mode-keyword))]
     (cutils/add-to-manifest project "JVM-Args" (cstr/join " " patched-jvm-args) mode-keyword)))
 
+(defn- agents-to-capsule-string [agents]
+  (reduce
+    (fn [accum a]
+      (println a)
+      (let [options-idx (.indexOf a :options)
+            options (if options-idx (nth a (+ options-idx 1)) nil)]
+        (str accum
+             (if (seq accum) " " "")
+             (cutils/artifact-to-string a)
+             (if options (str "=" options) ""))))
+    "" agents))
+
 (defn- add-java-agents [project & [mode-keyword]]
   "Adds a 'Java-Agents' capsule manifest entry based on project-level :jvm-opts and (possibly) capsule-level overrides"
   (let [patched-java-agents
           (cutils/diff
-            ; TODO Bootclasspath agent artifacts not supported by Capsule AFAIK, but check
-            (cutils/lein-agents-to-capsule-artifact-agents project)
-            (cutils/get-diff-section project cc/path-runtime-agents mode-keyword))]
+            (:java-agents project)
+            (cutils/get-diff-section project cc/path-runtime-java-agents mode-keyword))]
     (cutils/add-to-manifest project "Java-Agents"
-                            ; TODO simplify / de-uglify
-                            (reduce
-                              (fn [accum m]
-                                (let [embedded (:embedded m)
-                                      artifact (:artifact m)]
-                                  (str accum (if (seq accum) " " "")
-                                    (cond
-                                      (coll? (seq embedded))
-                                        (str
-                                          (first embedded)
-                                          (if (and (= (count embedded) 3) (seq (nth embedded 2)))
-                                            (str "=" (nth embedded 2))
-                                            ""))
-                                      (and (coll? (seq artifact)) (> (count artifact) 1))
-                                        (str
-                                          (cutils/artifact-to-string artifact)
-                                          (if (and (= (count artifact) 4) (seq (nth artifact 3)))
-                                            (str "=" (nth artifact 3))
-                                            ""))
-                                      :else
-                                        (do (main/warn "FATAL: ill-formed java agent" m) (main/exit))))))
-                              "" patched-java-agents)
+                            (agents-to-capsule-string patched-java-agents)
                             mode-keyword)))
+
+(defn- add-native-agents [project & [mode-keyword]]
+  "Adds a 'Native-Agents' capsule manifest entry based on capsule-level spec"
+  (cutils/add-to-manifest project "Native-Agents"
+                          (agents-to-capsule-string (get-in project (cc/mode-aware-path project cc/path-runtime-native-agents mode-keyword)))
+                          mode-keyword))
 
 (defn- manifest-put-runtime [project & [mode-keyword]]
   "Adds manifest entries implementing lein-capsule's runtime spec section"
@@ -121,6 +117,7 @@
     project
     (add-jvm-args mode-keyword)
     (add-java-agents mode-keyword)
+    (add-native-agents mode-keyword)
     (cutils/add-to-manifest-if-mode-path-as-string cc/path-runtime-java-version "Java-Version" mode-keyword)
     (cutils/add-to-manifest-if-mode-path-as-string cc/path-runtime-min-java-version "Min-Java-Version"
                                                    mode-keyword)
@@ -224,13 +221,7 @@
 ; TODO Validate Extract-Capsule
 (defn- validate-execution [project]
   "Validates specification of execution boot settings"
-  (let [agents (:agents (get-in project cc/path-execution-runtime))]
-    (doseq [a agents]
-      (if (not (or (get-in a [:embedded :jar]) (get-in a [:artifact :id])))
-        (do
-          (main/warn "FATAL: some agents miss coordinates")
-          (main/exit))))
-    project))
+  project)
 
 (defn- default-capsule-name [project]
   "Extracts or build the default capsule name"

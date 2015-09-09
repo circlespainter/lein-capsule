@@ -166,18 +166,36 @@
         ; TODO Test more
         :agents [
           ;; Optional, format similar to Leiningen's
-          ; { :embedded [
+          ; [
             ;; Mandatory
           ;   "myjar.jar"
             ;; Optional
-          ;   :options "" ] }
+          ;   :options "" ]
           ;; Optional, same format as Leiningen's
-          ; { :artifact [
+          ; [
             ;; Mandatory
           ;   group/sym "1.0"
             ;; Optional
-          ;   :options "" ] }
+          ;   :options "" ]
           ]
+
+        ;; Optional, corresponds 1:1 to Native-Agents manifest entry. A vector will override project-level ones,
+        ;; while a map with add/remove keys will change them.
+        ; TODO Test more
+        :native-agents [
+          ;; Optional, format similar to Leiningen's
+          ; [
+          ;; Mandatory
+          ;   "myjar.jar"
+          ;; Optional
+          ;   :options "" ]
+          ;; Optional, same format as Leiningen's
+          ; [
+          ;; Mandatory
+          ;   group/sym "1.0"
+          ;; Optional
+          ;   :options "" ]
+        ]
 
         :paths {
           ;; Optional, corresponds 1:1 to App-Class-Path manifest entry
