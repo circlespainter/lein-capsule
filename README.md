@@ -11,26 +11,17 @@ so expect some bumpiness and spec format changes until major release 1.0.
 
 ## Getting started
 
-Use this for user-level plugins:
+Add `[lein-capsule "0.2.0-SNAPSHOT"]` to `:plugins` in your project.clj.
 
-Put `[lein-capsule "0.1.1"]` into the `:plugins` vector of your
-`:user` profile, or if you are on Leiningen 1.x do `lein plugin install
-lein-capsule 0.1.1`.
-
-Use this for project-level plugins:
-
-Put `[lein-capsule "0.1.1"]` into the `:plugins` vector of your project.clj.
-
-The plugin is configured through the `:capsule` project section and currently supports no
-command line arguments. Minimal `project.clj` sample:
+The plugin is configured through the `:capsule` project section and currently supports no command line arguments. Minimal `project.clj` sample:
 
 ```clojure
 (defproject lein-capsule-test "0.1.1"
  :plugins [
-   [lein-capsule "0.1.1"] ]
+   [lein-capsule "0.2.0-SNAPSHOT"] ]
 
  :dependencies [
-   [org.clojure/clojure "1.6.0"] ]
+   [org.clojure/clojure "1.7.0"] ]
 
  :jvm-opts ["-client"]
 
