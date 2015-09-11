@@ -123,14 +123,14 @@
 (defn- manifest-put-mvn-repos [project & [mode-keyword]]
   "Adds repositories to the Capsule manifest"
   (if (is-non-default-mode-and-does-not-contribute-to-path
-        project cc/path-maven-dependencies-repositories mode-keyword)
+        project cc/path-dependencies-repositories mode-keyword)
     project
     (let [lein-prj-repos (lein-repos project)
           aether-prj-repos (map make-aether-repo lein-prj-repos)
           repos
             (cutils/diff
               aether-prj-repos
-              (cutils/get-diff-section project cc/path-maven-dependencies-repositories mode-keyword))
+              (cutils/get-diff-section project cc/path-dependencies-repositories mode-keyword))
           contains-clojars?
             (some
               #(and (string? %) (.contains % "clojars.org/repo"))
