@@ -12,7 +12,7 @@
     [lein-pprint "1.1.1"] ]
 
   :dependencies [
-    [org.clojure/clojure "1.6.0"] ]
+    [org.clojure/clojure "1.7.0"] ]
 
   ; TODO Test more
   :jvm-opts ["-client"]
