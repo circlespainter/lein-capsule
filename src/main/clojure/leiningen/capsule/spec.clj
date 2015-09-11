@@ -198,7 +198,7 @@
   (->
     project
     (cutils/add-to-manifest-if-mode-path-as-string
-      cc/path-maven-dependencies-allow-snapshots "Allow-Snapshots" mode-keyword)))
+      cc/path-dependencies-allow-snapshots "Allow-Snapshots" mode-keyword)))
 
 (defn ^:internal capsulize [project & [mode-keyword]]
   "Augments the manifest inserting capsule-related entries"

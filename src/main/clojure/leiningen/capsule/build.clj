@@ -52,22 +52,22 @@
 
 (defn- native-mac-capsule-deps [project & [mode-keyword]]
   "Extracts Capsule-spec Mac native dependencies"
-  (capsule-deps project cc/path-maven-dependencies-artifacts-native-mac mode-keyword))
+  (capsule-deps project cc/path-dependencies-artifacts-native-mac mode-keyword))
 
 (defn- native-linux-capsule-deps [project & [mode-keyword]]
   "Extracts Capsule-spec Linux native dependencies"
-  (capsule-deps project cc/path-maven-dependencies-artifacts-native-linux mode-keyword))
+  (capsule-deps project cc/path-dependencies-artifacts-native-linux mode-keyword))
 
 (defn- native-windows-capsule-deps [project & [mode-keyword]]
   "Extracts Capsule-spec Windows native dependencies"
-  (capsule-deps project cc/path-maven-dependencies-artifacts-native-windows mode-keyword))
+  (capsule-deps project cc/path-dependencies-artifacts-native-windows mode-keyword))
 
 (defn- jvm-computed-capsule-deps [project & [mode-keyword]]
   "Computes JVM dependencies based on both Leiningen and Capsule-spec"
   (let [p1
           (cutils/diff
             (jvm-lein-deps project)
-            (cutils/get-diff-section project cc/path-maven-dependencies-artifacts-jvm mode-keyword))
+            (cutils/get-diff-section project cc/path-dependencies-artifacts-jvm mode-keyword))
         p2
           (cutils/diff
             (jvm-lein-agent-deps project)
@@ -133,7 +133,7 @@
               (cutils/get-diff-section project cc/path-maven-dependencies-repositories mode-keyword))
           contains-clojars?
             (some
-              #(.contains % "clojars.org/repo")
+              #(and (string? %) (.contains % "clojars.org/repo"))
               repos)
           patched-repos
             (if contains-clojars?
@@ -159,24 +159,24 @@
               project
               (cutils/add-to-manifest project mf-entry-name (make-deps-string project path deps-fn) mode-keyword)))]
     (main/debug
-      (str "Maven JVM deps (mode " mode-keyword "): "
-           (make-deps-string project cc/path-maven-dependencies-artifacts-jvm jvm-computed-capsule-deps)))
+      (str "JVM deps (mode " mode-keyword "): "
+           (make-deps-string project cc/path-dependencies-artifacts-jvm jvm-computed-capsule-deps)))
     (main/debug
-      (str "Maven native Mac deps (mode " mode-keyword "): "
-           (make-deps-string project cc/path-maven-dependencies-artifacts-native-mac native-mac-capsule-deps)))
+      (str "Native Mac deps (mode " mode-keyword "): "
+           (make-deps-string project cc/path-dependencies-artifacts-native-mac native-mac-capsule-deps)))
     (main/debug
-      (str "Maven native Linux deps (mode " mode-keyword "): "
-           (make-deps-string project cc/path-maven-dependencies-artifacts-native-linux native-linux-capsule-deps)))
+      (str "Native Linux deps (mode " mode-keyword "): "
+           (make-deps-string project cc/path-dependencies-artifacts-native-linux native-linux-capsule-deps)))
     (main/debug
-      (str "Maven native Windows deps (mode " mode-keyword "): "
-           (make-deps-string project cc/path-maven-dependencies-artifacts-native-windows native-windows-capsule-deps)))
+      (str "Native Windows deps (mode " mode-keyword "): "
+           (make-deps-string project cc/path-dependencies-artifacts-native-windows native-windows-capsule-deps)))
     (-> project
-        (add-deps cc/path-maven-dependencies-artifacts-jvm "Dependencies" jvm-computed-capsule-deps)
-        (add-deps cc/path-maven-dependencies-artifacts-native-mac "Native-Dependencies-Mac" native-mac-capsule-deps)
+        (add-deps cc/path-dependencies-artifacts-jvm "Dependencies" jvm-computed-capsule-deps)
+        (add-deps cc/path-dependencies-artifacts-native-mac "Native-Dependencies-Mac" native-mac-capsule-deps)
         (add-deps
-          cc/path-maven-dependencies-artifacts-native-linux "Native-Dependencies-Linux" native-linux-capsule-deps)
+          cc/path-dependencies-artifacts-native-linux "Native-Dependencies-Linux" native-linux-capsule-deps)
         (add-deps
-          cc/path-maven-dependencies-artifacts-native-windows
+          cc/path-dependencies-artifacts-native-windows
           "Native-Dependencies-Windows" native-windows-capsule-deps))))
 
 (defn- get-dep-files [project deps]
@@ -193,10 +193,10 @@
           (fn [deps-fn path]
             (if (is-non-default-mode-and-does-not-contribute-to-path project path mode-keyword)
               [] (filter-deps (deps-fn project mode-keyword) exceptions exceptions-mode)))
-        jvm (make-deps jvm-computed-capsule-deps cc/path-maven-dependencies-artifacts-jvm )
-        native-mac (make-deps native-mac-capsule-deps cc/path-maven-dependencies-artifacts-native-mac)
-        native-linux (make-deps native-linux-capsule-deps cc/path-maven-dependencies-artifacts-native-linux)
-        native-windows (make-deps native-windows-capsule-deps cc/path-maven-dependencies-artifacts-native-windows)]
+        jvm (make-deps jvm-computed-capsule-deps cc/path-dependencies-artifacts-jvm )
+        native-mac (make-deps native-mac-capsule-deps cc/path-dependencies-artifacts-native-mac)
+        native-linux (make-deps native-linux-capsule-deps cc/path-dependencies-artifacts-native-linux)
+        native-windows (make-deps native-windows-capsule-deps cc/path-dependencies-artifacts-native-windows)]
     (main/debug (str "Embedding JVM deps: " jvm " (mode " mode-keyword ")"))
     (main/debug (str "Embedding native Mac deps: " native-mac " (mode" mode-keyword ")"))
     (main/debug (str "Embedding native Linux deps: " native-linux " (mode" mode-keyword ")"))

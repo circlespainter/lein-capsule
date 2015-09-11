@@ -227,8 +227,8 @@
             ;; Optional, corresponds to Security-Policy manifest entry
             :override "" } } } }
 
-  ;;; Optional, check https://github.com/puniverse/capsule#maven-dependencies for defaults
-    :maven-dependencies {
+  ;;; Optional
+    :dependencies {
       ;; Optional, corresponds to Allow-Snapshots manifest entry
       ; TODO Test more
       :allow-snapshots false
