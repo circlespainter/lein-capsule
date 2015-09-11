@@ -65,12 +65,11 @@ on project-level configuration and Capsule defaults themselves but they can be a
 ## (Some) TODOs
 
 - More manual tests but most importantly a comprehensive (eventually) testsuite including more (smaller) examples
-- Support ["Really Executable" Capsules](https://github.com/puniverse/capsule#really-executable-capsules)
-- Support [Caplets](https://github.com/puniverse/capsule#caplets)
+- Support ["Really Executable" Capsules](https://github.com/puniverse/capsule#really-executable-capsules) and trampolines
+- Support embedded [Caplets](https://github.com/puniverse/capsule#caplets)
 - Reference docs, look into [Codox](https://github.com/weavejester/codox),
 [Marginalia](https://github.com/gdeer81/marginalia) and [lein-html5-docs](https://github.com/tsdh/lein-html5-docs)
 - Consider using [core.typed](https://github.com/clojure/core.typed)
-- Consider integrating http://yajsw.sourceforge.net/ for services (or other convenient OS service wrapper[s])
 - Spot, reshape and publish generally useful logic (right now everything except main plugin's function is either
 private or marked as `:internal`) 
 - Various TODOs in code
