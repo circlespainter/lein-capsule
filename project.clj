@@ -28,8 +28,8 @@
              ; [lein-midje "3.1.3"]
            ]
 
-  :dependencies [[co.paralleluniverse/capsule "1.0-rc2-SNAPSHOT"]
-                 [co.paralleluniverse/capsule-util "1.0-rc2-SNAPSHOT"]
-                 [co.paralleluniverse/capsule-maven "1.0-rc2-SNAPSHOT"]]
+  :dependencies [[co.paralleluniverse/capsule "1.0"]
+                 [co.paralleluniverse/capsule-util "1.0"]
+                 [co.paralleluniverse/capsule-maven "1.0"]]
 
   :eval-in-leiningen true)

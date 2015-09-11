@@ -16,7 +16,7 @@
 (ns ^{ :author "circlespainter" :internal true } leiningen.capsule.consts
   "Useful constants and quasi-constants")
 
-(def ^:internal capsule-version "1.0-rc2-SNAPSHOT")
+(def ^:internal capsule-version "1.0")
 
 (def ^:internal clojars-repo-url "http://clojars.org/repo")
 
