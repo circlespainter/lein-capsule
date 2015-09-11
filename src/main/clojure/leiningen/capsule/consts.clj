@@ -84,3 +84,4 @@
   (if (non-default-mode project mode-keyword)
     [kwd-capsule-manifest mode-keyword]
     [kwd-capsule-manifest]))
+

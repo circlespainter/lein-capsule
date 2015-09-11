@@ -11,14 +11,14 @@ so expect some bumpiness and spec format changes until major release 1.0.
 
 ## Getting started
 
-Add `[lein-capsule "0.2.0-SNAPSHOT"]` to `:plugins` in your project.clj.
+Add `[lein-capsule "0.2.0"]` to `:plugins` in your project.clj.
 
 The plugin is configured through the `:capsule` project section and currently supports no command line arguments. Minimal `project.clj` sample:
 
 ```clojure
 (defproject lein-capsule-test "0.1.1"
  :plugins [
-   [lein-capsule "0.2.0-SNAPSHOT"] ]
+   [lein-capsule "0.2.0"] ]
 
  :dependencies [
    [org.clojure/clojure "1.7.0"] ]
