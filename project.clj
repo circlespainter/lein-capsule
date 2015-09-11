@@ -1,4 +1,5 @@
-(defproject lein-capsule "0.2.0-SNAPSHOT"
+(def capsule-version "1.0")
+
 
   :description "A Leiningen plugin for Parallel Universe's Capsule"
 
@@ -28,8 +29,8 @@
              ; [lein-midje "3.1.3"]
            ]
 
-  :dependencies [[co.paralleluniverse/capsule "1.0"]
-                 [co.paralleluniverse/capsule-util "1.0"]
-                 [co.paralleluniverse/capsule-maven "1.0"]]
+  :dependencies [[co.paralleluniverse/capsule ~capsule-version]
+                 [co.paralleluniverse/capsule-util ~capsule-version]
+                 [co.paralleluniverse/capsule-maven ~capsule-version]]
 
   :eval-in-leiningen true)
