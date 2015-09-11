@@ -32,7 +32,7 @@
   ;;; Capsule plugin configuration section, optional
   :capsule {
 
-    ; TODO Add and implement plugin version check
+    :capsule-version "1.0.1-SNAPSHOT"
 
   ;;; Optional, defaults to "capsules" in project target dir, can't be overridden
     :output-dir "my-capsules"

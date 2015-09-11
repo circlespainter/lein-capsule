@@ -86,7 +86,6 @@
 (defn- agents-to-capsule-string [agents]
   (reduce
     (fn [accum a]
-      (println a)
       (let [options-idx (.indexOf a :options)
             options (if options-idx (nth a (+ options-idx 1)) nil)]
         (str accum

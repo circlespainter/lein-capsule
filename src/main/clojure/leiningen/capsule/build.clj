@@ -32,7 +32,8 @@
     (co.paralleluniverse.capsule Jar)
     (java.io FileOutputStream)
     (java.nio.file Paths Files StandardOpenOption OpenOption)
-    (java.util.zip ZipInputStream)))
+    (java.util.zip ZipInputStream)
+    (co.paralleluniverse.common JarClassLoader)))
 
 (defn- make-aether-dep [lein-style-spec]
   "Builds an Aether dependency from a Leinigen one"
@@ -238,6 +239,12 @@
                  (vals project-jar-files))]
     (.addEntries capsule nil jar-zis)))
 
+(defn- extract-jar-class-to-capsule [project-jar-file class-name capsule]
+  "Extracts the 'leniningen.jar/jar'-produced project jars in the capsule's root"
+  (let [cll (JarClassLoader. (Paths/get project-jar-file (make-array String 0)) true)
+        cl (.loadClass cll class-name)]
+    (.addClass capsule cl)))
+
 (defn self-contained [project base-type excepts]
   (not (or
     (not= base-type :fat)
@@ -289,17 +296,22 @@
       project
       (cutils/get-modes project))
 
-    ; If it's not a completely self-contained fat Capsule, extract full Capsule's jar including the dependency manager
     (if-not (self-contained project base-type excepts)
+      ; Embed capsule-maven jar content as well
       (do
         (extract-jar-contents-to-capsule
           {
-           ; :capsule-jar (.getAbsolutePath (first (get-dep-files project [['co.paralleluniverse/capsule cc/capsule-version]])))
-           :capsule-maven-jar (.getAbsolutePath (first (get-dep-files project [['co.paralleluniverse/capsule-maven cc/capsule-version]])))}
-          capsule)
-        (.addClass capsule (Class/forName "Capsule")))
-      ; Else the Capsule class will be enough
-      (.addClass capsule (Class/forName "Capsule")))
+           ; :capsule-jar (.getAbsolutePath (first (get-dep-files project [['co.paralleluniverse/capsule (cutils/get-capsule-version project)]])))
+           :capsule-maven-jar
+            (.getAbsolutePath
+              (first
+                (get-dep-files project [['co.paralleluniverse/capsule-maven (cutils/get-capsule-maven-version project)]])))}
+          capsule)))
+
+    ; Embed Capsule class no matter what
+    (extract-jar-class-to-capsule
+      (.getAbsolutePath (first (get-dep-files project [['co.paralleluniverse/capsule (cutils/get-capsule-version project)]])))
+      "Capsule" capsule)
 
     ; If it's a fully thin capsule without any exceptions, extract project jars
     (if (and (= base-type :thin) (not (seq excepts)))

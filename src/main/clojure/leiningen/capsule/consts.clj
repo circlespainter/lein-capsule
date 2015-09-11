@@ -16,8 +16,6 @@
 (ns ^{ :author "circlespainter" :internal true } leiningen.capsule.consts
   "Useful constants and quasi-constants")
 
-(def ^:internal capsule-version "1.0")
-
 (def ^:internal clojars-repo-url "http://clojars.org/repo")
 
 ; TODO Restore it to :manifest and maybe try reusing some uberjar logic when https://github.com/technomancy/leiningen/pull/1700 is merged
@@ -32,6 +30,8 @@
 (def ^:internal path-log-level [:log-level])
 (def ^:internal path-application-name [:application :name])
 (def ^:internal path-application-version [:application :version])
+(def ^:internal path-capsule-version [:capsule-version])
+(def ^:internal path-capsule-maven-version [:capsule-maven-version])
 (def ^:internal path-capsule-default-name [:name])
 (def ^:internal path-execution-boot-main-class [:execution :boot :main-class])
 (def ^:internal path-execution-boot-scripts [:execution :boot :scripts])

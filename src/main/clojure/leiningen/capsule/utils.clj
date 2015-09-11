@@ -125,6 +125,15 @@
     (get-in project (cc/mode-aware-path project path mode-keyword))
     (get-in project (cons :capsule path))))
 
+
+(defn ^:internal get-capsule-version [project]
+  (let [v (get-in project (cc/mode-aware-path project cc/path-capsule-version))]
+    (if (string? v) v "1.0")))
+
+(defn ^:internal get-capsule-maven-version [project]
+  (let [v (get-in project (cc/mode-aware-path project cc/path-capsule-maven-version))]
+    (if (string? v) v "1.0")))
+
 (defn ^:internal diff [items diff-spec]
   "Applies a lein-capsule-style diff-spec to a collection"
   (let [items (or (if (coll? items) items) [])]
