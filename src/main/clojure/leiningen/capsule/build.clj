@@ -185,7 +185,8 @@
   (aether/dependency-files
     (aether/resolve-dependencies
       :coordinates deps
-      :repositories (lein-repos project))))
+      :repositories (lein-repos project)
+      :local-repo (:local-repo project))))
 
 (defn- retrieve-and-insert-mvn-deps [project capsule & [mode-keyword exceptions exceptions-mode]]
   "Retrieves some, all or all except some project dependencies and inserts them in the capsule jar under a
