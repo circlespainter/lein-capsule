@@ -1,6 +1,6 @@
 (def capsule-version "1.0")
 
-(defproject lein-capsule "0.2.0"
+(defproject lein-capsule "0.2.1-SNAPSHOT"
 
   :description "A Leiningen plugin for Parallel Universe's Capsule"
 
