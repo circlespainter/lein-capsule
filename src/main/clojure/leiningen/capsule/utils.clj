@@ -55,7 +55,7 @@
       (str
         (if nmspc (str nmspc ":") "")
         nmsym ":" (second v) ; version
-        (if classifier-idx (str ":" (nth v (+ classifier-idx 1))) "")))))
+        (if (and classifier-idx (> classifier-idx 0)) (str ":" (nth v (+ classifier-idx 1))) "")))))
 
 (defn ^:internal capsule-manifest [project]
   "Extracts the capsule-based manifest sub-map from a Leiningen project"

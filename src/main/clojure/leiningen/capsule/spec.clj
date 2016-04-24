@@ -87,7 +87,7 @@
   (reduce
     (fn [accum a]
       (let [options-idx (.indexOf a :options)
-            options (if options-idx (nth a (+ options-idx 1)) nil)]
+            options (if (and options-idx (> options-idx 0)) (nth a (+ options-idx 1)) nil)]
         (str accum
              (if (seq accum) " " "")
              (cutils/artifact-to-string a)
