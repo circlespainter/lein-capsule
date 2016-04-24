@@ -1,4 +1,4 @@
-(def capsule-version "1.0")
+(def capsule-version "1.0.2")
 
 (defproject lein-capsule "0.2.1-SNAPSHOT"
 
