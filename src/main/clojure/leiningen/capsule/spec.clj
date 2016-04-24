@@ -123,7 +123,7 @@
     (cutils/add-to-manifest-if-mode-path-as-string cc/path-runtime-min-update-version "Min-Update-Version"
                                                    mode-keyword)
     (cutils/add-to-manifest-if-mode-path-as-string cc/path-runtime-jdk-required "JDK-Required" mode-keyword)
-    (cutils/add-to-manifest-if-mode-path cc/path-runtime-system-properties "Environment-Variables"
+    (cutils/add-to-manifest-if-mode-path cc/path-runtime-system-properties "System-Properties"
                                             #(reduce-kv (fn [accum k v] (str accum " " k "=" v)) "" %) mode-keyword)
     (cutils/add-to-manifest-if-mode-path
       cc/path-runtime-app-class-path "App-Class-Path" #(cstr/join " " %) mode-keyword)
