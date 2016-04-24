@@ -20,7 +20,7 @@
   :resource-paths    ["src/main/resources"]
   :java-source-paths ["src/main/java"]
 
-  :profiles { :dev { :dependencies [[midje "1.6.3"]] } }
+  ; :profiles { :dev { :dependencies [[midje "1.6.3"]] } }
 
   :plugins [
              ; [lein-pprint "1.1.1"]
