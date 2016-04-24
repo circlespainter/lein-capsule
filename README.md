@@ -1,5 +1,5 @@
 # *lein-capsule*<br/>A [Leiningen](https://github.com/technomancy/leiningen) plugin for [Parallel Universe](http://www.paralleluniverse.co)'s [Capsule](https://github.com/puniverse/capsule).
-[![Build Status](http://img.shields.io/travis/circlespainter/lein-capsule.svg?style=flat)](https://travis-ci.org/circlespainter/lein-capsule) [![Dependency Status](https://www.versioneye.com/user/projects/54379f97b2a9c5aed60000d3/badge.svg?style=flat)](https://www.versioneye.com/user/projects/54379f97b2a9c5aed60000d3) [![Version](http://img.shields.io/badge/version-0.1.1-red.svg?style=flat)](https://github.com/circlespainter/lein-capsule) [![License](http://img.shields.io/badge/license-EPL-blue.svg?style=flat)](https://www.eclipse.org/legal/epl-v10.html) [![License](http://img.shields.io/badge/license-LGPL-blue.svg?style=flat)](https://www.gnu.org/licenses/lgpl.html)
+[![Build Status](http://img.shields.io/travis/circlespainter/lein-capsule.svg?style=flat)](https://travis-ci.org/circlespainter/lein-capsule) [![Dependency Status](https://www.versioneye.com/user/projects/54379f97b2a9c5aed60000d3/badge.svg?style=flat)](https://www.versioneye.com/user/projects/54379f97b2a9c5aed60000d3) [![Version](http://img.shields.io/badge/version-0.2.1-red.svg?style=flat)](https://github.com/circlespainter/lein-capsule) [![License](http://img.shields.io/badge/license-EPL-blue.svg?style=flat)](https://www.eclipse.org/legal/epl-v10.html) [![License](http://img.shields.io/badge/license-LGPL-blue.svg?style=flat)](https://www.gnu.org/licenses/lgpl.html)
 
 A [Leiningen](https://github.com/technomancy/leiningen) plugin for
 [Parallel Universe](http://www.paralleluniverse.co)'s
@@ -11,14 +11,14 @@ so expect some bumpiness and spec format changes until major release 1.0.
 
 ## Getting started
 
-Add `[lein-capsule "0.2.0"]` to `:plugins` in your project.clj.
+Add `[lein-capsule "0.2.1"]` to `:plugins` in your project.clj.
 
 The plugin is configured through the `:capsule` project section and currently supports no command line arguments. Minimal `project.clj` sample:
 
 ```clojure
 (defproject lein-capsule-test "0.1.1"
  :plugins [
-   [lein-capsule "0.2.0"] ]
+   [lein-capsule "0.2.1"] ]
 
  :dependencies [
    [org.clojure/clojure "1.7.0"] ]
@@ -81,7 +81,7 @@ private or marked as `:internal`)
 lein-capsule is free software published under the following license:
 
 ```
-Copyright © 2014 Fabio Tudone
+Copyright © 2014-2016 Fabio Tudone
 
 This program and the accompanying materials are dual-licensed under
 either the terms of the Eclipse Public License v1.0 as published by
